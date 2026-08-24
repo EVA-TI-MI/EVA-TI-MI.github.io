@@ -167,6 +167,15 @@
     animation: blink 1.2s infinite;
   }
   @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  .version-tag {
+    position: absolute;
+    bottom: 6px;
+    right: 10px;
+    font-size: 10px;
+    color: #444;
+    letter-spacing: 1px;
+    pointer-events: none;
+  }
 
   .btn-row { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; justify-content: center; }
   .neon-btn {
@@ -599,6 +608,7 @@
           <button class="neon-btn gold" id="startLbBtn">排行榜</button>
         </div>
         <div class="hint">按 空格键 开始</div>
+        <div class="version-tag">v0.1i</div>
       </div>
 
       <!-- Pause Overlay -->
@@ -625,7 +635,7 @@
 
       <!-- Settings Overlay -->
       <div class="overlay" id="settingsOverlay">
-        <h2 style="font-size:22px;">游戏设置</h2>
+        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1i</span></h2>
 
         <div class="settings-group">
           <div class="settings-label">难度（影响初始速度）</div>
