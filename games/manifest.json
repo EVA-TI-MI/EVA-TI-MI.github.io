@@ -1,0 +1,26 @@
+{
+  "name": "霓虹贪吃蛇",
+  "short_name": "贪吃蛇",
+  "description": "经典贪吃蛇游戏，霓虹像素风格，支持登录、排行榜、难度选择、大中小地图、金苹果、音效和彩虹皮肤",
+  "start_url": "snake.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d0d1a",
+  "theme_color": "#0d0d1a",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
