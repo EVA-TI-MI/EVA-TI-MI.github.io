@@ -2860,7 +2860,36 @@ function init() {
   render();
 }
 
+// 阅读器键盘快捷键：← 上一章，→ 下一章
+document.addEventListener('keydown', (e) => {
+  if (currentPage !== 'reader') return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prevChapter(); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); nextChapter(); }
+  else if (e.key === 'Escape') { e.preventDefault(); closeReader(); }
+});
+
 init();
+</script>
+<script>
+// 源码保护：禁用右键、开发者工具快捷键、查看源码、保存页面
+(function(){
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  document.addEventListener('dragstart', function(e){ e.preventDefault(); });
+  document.addEventListener('keydown', function(e){
+    var key = e.key.toLowerCase();
+    if (key === 'f12') { e.preventDefault(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) {
+      e.preventDefault(); return;
+    }
+    if ((e.ctrlKey || e.metaKey) && key === 'u') { e.preventDefault(); return; }
+    if ((e.ctrlKey || e.metaKey) && key === 's') { e.preventDefault(); return; }
+  });
+  document.addEventListener('selectstart', function(e){
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    e.preventDefault();
+  });
+})();
 </script>
 </body>
 </html>

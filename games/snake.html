@@ -609,7 +609,7 @@
           <button class="neon-btn gold" id="startLbBtn">排行榜</button>
         </div>
         <div class="hint">按 空格键 开始</div>
-        <div class="version-tag">v0.1l</div>
+        <div class="version-tag">v0.1m</div>
       </div>
 
       <!-- Pause Overlay -->
@@ -637,7 +637,7 @@
 
       <!-- Settings Overlay -->
       <div class="overlay" id="settingsOverlay">
-        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1l</span></h2>
+        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1m</span></h2>
 
         <div class="settings-group">
           <div class="settings-label">难度（影响初始速度）</div>
@@ -1774,10 +1774,30 @@
   });
   document.getElementById('pauseRestartBtn').addEventListener('click', startGame);
 
+  // 双击齿轮快速切换设置面板
+  function toggleSettings() {
+    if (settingsOverlay.classList.contains('show')) {
+      hideAllOverlays();
+      if (pausedForModal && gameState === 'paused') {
+        pausedForModal = false;
+        togglePause();
+      } else if (gameState === 'start') startOverlay.classList.add('show');
+      else if (gameState === 'paused') pauseOverlay.classList.add('show');
+      else if (gameState === 'gameover') gameOverOverlay.classList.add('show');
+    } else {
+      if (gameState === 'playing') { togglePause(); pausedForModal = true; }
+      syncSettingsUI();
+      showOverlay(settingsOverlay);
+    }
+  }
+  let _settingsDblTimer = null;
   document.getElementById('settingsBtn').addEventListener('click', () => {
-    if (gameState === 'playing') { togglePause(); pausedForModal = true; }
-    syncSettingsUI();
-    showOverlay(settingsOverlay);
+    clearTimeout(_settingsDblTimer);
+    _settingsDblTimer = setTimeout(toggleSettings, 220);
+  });
+  document.getElementById('settingsBtn').addEventListener('dblclick', () => {
+    clearTimeout(_settingsDblTimer);
+    toggleSettings();
   });
   document.getElementById('winSizeBtn').addEventListener('click', cycleWinSize);
   document.getElementById('settingsCloseBtn').addEventListener('click', () => {
@@ -2021,6 +2041,34 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     navigator.serviceWorker.register('sw.js').catch(function() {});
   });
 }
+</script>
+<script>
+// 源码保护：禁用右键、开发者工具快捷键、查看源码、保存页面
+(function(){
+  // 禁用右键菜单
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  // 禁用拖拽
+  document.addEventListener('dragstart', function(e){ e.preventDefault(); });
+  // 禁用开发者工具快捷键
+  document.addEventListener('keydown', function(e){
+    var key = e.key.toLowerCase();
+    // F12
+    if (key === 'f12') { e.preventDefault(); return; }
+    // Ctrl+Shift+I / J / C
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) {
+      e.preventDefault(); return;
+    }
+    // Ctrl+U 查看源码
+    if ((e.ctrlKey || e.metaKey) && key === 'u') { e.preventDefault(); return; }
+    // Ctrl+S 保存页面
+    if ((e.ctrlKey || e.metaKey) && key === 's') { e.preventDefault(); return; }
+  });
+  // 禁用文本选择（CSS 已有，JS 兜底，排除输入框）
+  document.addEventListener('selectstart', function(e){
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    e.preventDefault();
+  });
+})();
 </script>
 </body>
 </html>
