@@ -566,7 +566,7 @@
       </div>
       <button class="top-btn right" id="lbBtn" title="排行榜">🏆</button>
       <button class="top-btn" id="winSizeBtn" title="窗口大小">⛶</button>
-      <button class="top-btn" id="settingsBtn" title="设置">⚙</button>
+      <button class="top-btn" id="settingsBtn" title="设置（双击快速切换 / O键）" onclick="if(window.toggleSettings)window.toggleSettings()">⚙</button>
     </div>
   </div>
 
@@ -602,14 +602,14 @@
         <p>方向键 / WASD：控制方向</p>
         <p>空格 / P：暂停　R：重新开始</p>
         <p>C：切换皮肤　吃到金苹果得 30 分</p>
-        <p id="startSettingsHint" style="color:#ffd700;margin-top:6px;">⚙ 设置难度 / 穿墙 / 地图　⛶ 切换窗口大小</p>
+        <p id="startSettingsHint" style="color:#ffd700;margin-top:6px;">⚙ 设置难度 / 穿墙 / 地图　⛶ 切换窗口大小　O 键打开设置</p>
         <div class="btn-row">
           <button class="neon-btn" id="startBtn">开始游戏</button>
-          <button class="neon-btn" id="startSettingsBtn">⚙ 设置</button>
+          <button class="neon-btn" id="startSettingsBtn" onclick="if(window._openSettings)window._openSettings()">⚙ 设置 <span style="font-size:10px;opacity:0.6;">(O)</span></button>
           <button class="neon-btn gold" id="startLbBtn">排行榜</button>
         </div>
         <div class="hint">按 空格键 开始</div>
-        <div class="version-tag">v0.1m</div>
+        <div class="version-tag">v0.1n</div>
       </div>
 
       <!-- Pause Overlay -->
@@ -618,7 +618,7 @@
         <p>按 空格 / P 继续</p>
         <div class="btn-row">
           <button class="neon-btn" id="resumeBtn">继续</button>
-          <button class="neon-btn" id="pauseSettingsBtn">⚙ 设置</button>
+          <button class="neon-btn" id="pauseSettingsBtn" onclick="if(window._openSettings)window._openSettings()">⚙ 设置 <span style="font-size:10px;opacity:0.6;">(O)</span></button>
           <button class="neon-btn pink" id="pauseRestartBtn">重新开始</button>
         </div>
       </div>
@@ -637,7 +637,7 @@
 
       <!-- Settings Overlay -->
       <div class="overlay" id="settingsOverlay">
-        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1m</span></h2>
+        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1n</span></h2>
 
         <div class="settings-group">
           <div class="settings-label">难度（影响初始速度）</div>
@@ -1733,6 +1733,8 @@
     }
     if (key === 'r') { startGame(); return; }
     if (key === 'c') { cycleSkin(); return; }
+    // O 键：打开/关闭设置（键盘快捷键兜底）
+    if (key === 'o') { e.preventDefault(); toggleSettings(); return; }
     if (key === 'escape') {
       if (settingsOverlay.classList.contains('show') || lbOverlay.classList.contains('show')) {
         hideAllOverlays();
@@ -1760,18 +1762,22 @@
 
   // ===== Button Events =====
   document.getElementById('startBtn').addEventListener('click', startGame);
-  document.getElementById('startSettingsBtn').addEventListener('click', () => {
+  function _openSettings() {
     syncSettingsUI();
     showOverlay(settingsOverlay);
-  });
+  }
+  window._openSettings = _openSettings;
+  // 开始/暂停界面的设置按钮：click + pointerdown 双保险
+  const _startSetBtn = document.getElementById('startSettingsBtn');
+  _startSetBtn.addEventListener('click', _openSettings);
+  _startSetBtn.addEventListener('pointerdown', function(e){ e.preventDefault(); });
+  const _pauseSetBtn = document.getElementById('pauseSettingsBtn');
+  _pauseSetBtn.addEventListener('click', _openSettings);
+  _pauseSetBtn.addEventListener('pointerdown', function(e){ e.preventDefault(); });
   document.getElementById('startLbBtn').addEventListener('click', () => { renderLeaderboard(); showOverlay(lbOverlay); });
   document.getElementById('retryBtn').addEventListener('click', startGame);
   document.getElementById('overLbBtn').addEventListener('click', () => { renderLeaderboard(); showOverlay(lbOverlay); });
   document.getElementById('resumeBtn').addEventListener('click', togglePause);
-  document.getElementById('pauseSettingsBtn').addEventListener('click', () => {
-    syncSettingsUI();
-    showOverlay(settingsOverlay);
-  });
   document.getElementById('pauseRestartBtn').addEventListener('click', startGame);
 
   // 双击齿轮快速切换设置面板
@@ -1790,15 +1796,29 @@
       showOverlay(settingsOverlay);
     }
   }
-  let _settingsDblTimer = null;
-  document.getElementById('settingsBtn').addEventListener('click', () => {
-    clearTimeout(_settingsDblTimer);
-    _settingsDblTimer = setTimeout(toggleSettings, 220);
-  });
-  document.getElementById('settingsBtn').addEventListener('dblclick', () => {
-    clearTimeout(_settingsDblTimer);
-    toggleSettings();
-  });
+  // 暴露到全局，供 inline onclick 兜底
+  window.toggleSettings = toggleSettings;
+
+  // 齿轮按钮：pointerdown 比 click 更可靠（不依赖 mouseup）
+  let _lastTapTime = 0;
+  let _tapTimer = null;
+  function _handleGearTap(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const now = Date.now();
+    if (now - _lastTapTime < 300) {
+      // 双击：立即切换
+      clearTimeout(_tapTimer);
+      _lastTapTime = 0;
+      toggleSettings();
+    } else {
+      _lastTapTime = now;
+      _tapTimer = setTimeout(() => { toggleSettings(); }, 220);
+    }
+  }
+  const _gearBtn = document.getElementById('settingsBtn');
+  _gearBtn.addEventListener('pointerdown', _handleGearTap);
+
   document.getElementById('winSizeBtn').addEventListener('click', cycleWinSize);
   document.getElementById('settingsCloseBtn').addEventListener('click', () => {
     hideAllOverlays();
