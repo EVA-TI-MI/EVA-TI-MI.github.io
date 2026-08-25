@@ -148,8 +148,16 @@
     border-radius: 4px;
     padding: 20px;
     overflow-y: auto;
+    z-index: 5;
   }
-  .overlay.show { display: flex; }
+  .overlay.show {
+    display: flex;
+    animation: overlayIn 0.18s ease-out;
+  }
+  @keyframes overlayIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+  }
   .overlay h2 {
     font-size: 28px;
     color: #00ffc8;
@@ -189,6 +197,9 @@
     cursor: pointer;
     transition: all 0.2s;
     letter-spacing: 1px;
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
   }
   .neon-btn:hover { background: rgba(0,255,200,0.25); box-shadow: 0 0 12px rgba(0,255,200,0.3); }
   .neon-btn.gold { border-color: #ffd700; color: #ffd700; background: rgba(255,215,0,0.08); }
@@ -609,7 +620,7 @@
           <button class="neon-btn gold" id="startLbBtn">排行榜</button>
         </div>
         <div class="hint">按 空格键 开始</div>
-        <div class="version-tag">v0.1o</div>
+        <div class="version-tag">v0.1p</div>
       </div>
 
       <!-- Pause Overlay -->
@@ -637,7 +648,7 @@
 
       <!-- Settings Overlay -->
       <div class="overlay" id="settingsOverlay">
-        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1o</span></h2>
+        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1p</span></h2>
 
         <div class="settings-group">
           <div class="settings-label">难度（影响初始速度）</div>
@@ -1778,11 +1789,16 @@
     }
   });
   function _openSettings() {
-    syncSettingsUI();
-    showOverlay(settingsOverlay);
+    try {
+      syncSettingsUI();
+      showOverlay(settingsOverlay);
+    } catch (err) {
+      console.error('打开设置失败:', err);
+    }
   }
-  document.getElementById('startSettingsBtn').addEventListener('click', _openSettings);
-  document.getElementById('pauseSettingsBtn').addEventListener('click', _openSettings);
+  window._openSettings = _openSettings;
+  document.getElementById('startSettingsBtn').addEventListener('click', function(e){ e.stopPropagation(); _openSettings(); });
+  document.getElementById('pauseSettingsBtn').addEventListener('click', function(e){ e.stopPropagation(); _openSettings(); });
   document.getElementById('startLbBtn').addEventListener('click', () => { renderLeaderboard(); showOverlay(lbOverlay); });
   document.getElementById('retryBtn').addEventListener('click', startGame);
   document.getElementById('overLbBtn').addEventListener('click', () => { renderLeaderboard(); showOverlay(lbOverlay); });
@@ -1901,7 +1917,9 @@
   }));
 
   // Canvas clicks
-  canvas.addEventListener('click', () => {
+  canvas.addEventListener('click', (e) => {
+    // 如果点击目标不是 canvas 本身（被遮罩层或按钮拦截），不处理
+    if (e.target !== canvas) return;
     if (gameState === 'start') startGame();
     else if (gameState === 'gameover') startGame();
   });
@@ -2087,21 +2105,12 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   // 禁用开发者工具快捷键
   document.addEventListener('keydown', function(e){
     var key = e.key.toLowerCase();
-    // F12
     if (key === 'f12') { e.preventDefault(); return; }
-    // Ctrl+Shift+I / J / C
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) {
       e.preventDefault(); return;
     }
-    // Ctrl+U 查看源码
     if ((e.ctrlKey || e.metaKey) && key === 'u') { e.preventDefault(); return; }
-    // Ctrl+S 保存页面
     if ((e.ctrlKey || e.metaKey) && key === 's') { e.preventDefault(); return; }
-  });
-  // 禁用文本选择（CSS 已有，JS 兜底，排除输入框）
-  document.addEventListener('selectstart', function(e){
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    e.preventDefault();
   });
 })();
 </script>
