@@ -608,7 +608,7 @@
           <button class="neon-btn gold" id="startLbBtn">排行榜</button>
         </div>
         <div class="hint">按 空格键 开始</div>
-        <div class="version-tag">v0.1i</div>
+        <div class="version-tag">v0.1j</div>
       </div>
 
       <!-- Pause Overlay -->
@@ -635,7 +635,7 @@
 
       <!-- Settings Overlay -->
       <div class="overlay" id="settingsOverlay">
-        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1i</span></h2>
+        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1j</span></h2>
 
         <div class="settings-group">
           <div class="settings-label">难度（影响初始速度）</div>
@@ -793,6 +793,9 @@
     { name: '线条', theme: 'line', pixel: false, group: '3d', accent: '#a78bfa',
       body: '#a78bfa', glow: 'rgba(167,139,250,0.4)', dark: '#6d4bc4',
       head: '#a78bfa', eye: '#a78bfa', pupil: '#a78bfa' },
+    { name: '赛博朋克', theme: 'cyberpunk', pixel: false, group: '3d', accent: '#fcee0a',
+      body: '#fcee0a', glow: 'rgba(252,238,10,0.6)', dark: '#1a1a2e',
+      head: '#fcee0a', eye: '#00f0ff', pupil: '#ff003c' },
     // ── 经典原色（像素方块风格）──
     { name: '红', theme: 'neon', pixel: true, group: 'classic', accent: '#ff3b3b',
       body: '#ff3b3b', glow: 'rgba(255,59,59,0.7)', dark: '#8b1a1a',
@@ -815,6 +818,9 @@
     { name: '紫', theme: 'neon', pixel: true, group: 'classic', accent: '#b93bff',
       body: '#b93bff', glow: 'rgba(185,59,255,0.7)', dark: '#5a1a8b',
       head: '#cc55ff', eye: '#ffffff', pupil: '#000000' },
+    { name: '像素机甲', theme: 'mecha', pixel: true, group: 'classic', accent: '#00d4ff',
+      body: '#5a7a9a', glow: 'rgba(0,212,255,0.5)', dark: '#2a3a4f',
+      head: '#6a8aaa', eye: '#00d4ff', pupil: '#001a2a' },
     { name: '彩虹', theme: 'rainbow', pixel: true, group: 'classic', accent: '#ff6b9d',
       body: 'rainbow', glow: 'rgba(255,107,157,0.6)', dark: '#4a1a2a',
       head: 'rainbow', eye: '#ffffff', pupil: '#000000' },
@@ -1374,6 +1380,74 @@
         ctx.arc(x + 5, y + 5, 4, 0, Math.PI * 2);
       }
       ctx.stroke();
+    } else if (theme === 'cyberpunk') {
+      // 赛博朋克：暗色底盘 + 霓虹黄边框 + 品红电路纹
+      ctx.shadowBlur = pix ? 0 : 8;
+      ctx.shadowColor = s.glow;
+      // 暗色底盘
+      ctx.fillStyle = s.dark;
+      if (pix) {
+        ctx.fillRect(x, y, GRID, GRID);
+      } else {
+        ctx.beginPath();
+        var rr = 2, rw = GRID - 1, rh = GRID - 1;
+        ctx.moveTo(x + rr, y + 0.5);
+        ctx.lineTo(x + rw - rr, y + 0.5);
+        ctx.quadraticCurveTo(x + rw + 0.5, y + 0.5, x + rw + 0.5, y + rr);
+        ctx.lineTo(x + rw + 0.5, y + rh - rr);
+        ctx.quadraticCurveTo(x + rw + 0.5, y + rh + 0.5, x + rw - rr, y + rh + 0.5);
+        ctx.lineTo(x + rr, y + rh + 0.5);
+        ctx.quadraticCurveTo(x + 0.5, y + rh + 0.5, x + 0.5, y + rh - rr);
+        ctx.lineTo(x + 0.5, y + rr);
+        ctx.quadraticCurveTo(x + 0.5, y + 0.5, x + rr, y + 0.5);
+        ctx.closePath();
+        ctx.fill();
+      }
+      // 霓虹黄边框
+      ctx.shadowBlur = pix ? 0 : 6;
+      ctx.strokeStyle = bodyColor;
+      ctx.lineWidth = pix ? 1 : 1.5;
+      if (pix) {
+        ctx.strokeRect(x + 0.5, y + 0.5, GRID - 1, GRID - 1);
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(x + rr, y + 0.5);
+        ctx.lineTo(x + rw - rr, y + 0.5);
+        ctx.quadraticCurveTo(x + rw + 0.5, y + 0.5, x + rw + 0.5, y + rr);
+        ctx.lineTo(x + rw + 0.5, y + rh - rr);
+        ctx.quadraticCurveTo(x + rw + 0.5, y + rh + 0.5, x + rw - rr, y + rh + 0.5);
+        ctx.lineTo(x + rr, y + rh + 0.5);
+        ctx.quadraticCurveTo(x + 0.5, y + rh + 0.5, x + 0.5, y + rh - rr);
+        ctx.lineTo(x + 0.5, y + rr);
+        ctx.quadraticCurveTo(x + 0.5, y + 0.5, x + rr, y + 0.5);
+        ctx.closePath();
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+      // 品红电路纹（身体段）
+      if (!isHead) {
+        ctx.fillStyle = '#ff003c';
+        if (pix) {
+          ctx.fillRect(x + 2, y + 2, 1, 1);
+          ctx.fillRect(x + 7, y + 7, 1, 1);
+          ctx.fillRect(x + 4, y + 4, 2, 1);
+        } else {
+          ctx.fillRect(x + 2, y + 2, 2, 1);
+          ctx.fillRect(x + 6, y + 7, 2, 1);
+          ctx.fillRect(x + 4, y + 4, 2, 1);
+        }
+      } else {
+        // 头部：青色中线
+        ctx.fillStyle = s.eye;
+        ctx.shadowBlur = pix ? 0 : 4;
+        ctx.shadowColor = s.eye;
+        if (pix) {
+          ctx.fillRect(x + 1, y + 4, GRID - 2, 1);
+        } else {
+          ctx.fillRect(x + 2, y + 4, GRID - 4, 1);
+        }
+        ctx.shadowBlur = 0;
+      }
     }
 
     // 眼睛（仅头部）
@@ -1443,6 +1517,37 @@
       }
       ctx.fillRect(e1x, e1y, 2, 2);
       ctx.fillRect(e2x, e2y, 2, 2);
+      return;
+    }
+
+    if (theme === 'cyberpunk') {
+      // 赛博朋克：窄长护目镜面 + 青色发光
+      ctx.shadowBlur = pix ? 0 : 6;
+      ctx.shadowColor = s.eye;
+      ctx.fillStyle = s.eye;
+      switch (direction) {
+        case 'right':
+          ctx.fillRect(hx + 4, hy + 3, 5, 1); ctx.fillRect(hx + 4, hy + 6, 5, 1); break;
+        case 'left':
+          ctx.fillRect(hx + 1, hy + 3, 5, 1); ctx.fillRect(hx + 1, hy + 6, 5, 1); break;
+        case 'up':
+          ctx.fillRect(hx + 2, hy + 1, 1, 4); ctx.fillRect(hx + 7, hy + 1, 1, 4); break;
+        case 'down':
+          ctx.fillRect(hx + 2, hy + 5, 1, 4); ctx.fillRect(hx + 7, hy + 5, 1, 4); break;
+      }
+      ctx.shadowBlur = 0;
+      // 品红瞳孔点
+      ctx.fillStyle = s.pupil;
+      switch (direction) {
+        case 'right':
+          ctx.fillRect(hx + 7, hy + 3, 1, 1); ctx.fillRect(hx + 7, hy + 6, 1, 1); break;
+        case 'left':
+          ctx.fillRect(hx + 2, hy + 3, 1, 1); ctx.fillRect(hx + 2, hy + 6, 1, 1); break;
+        case 'up':
+          ctx.fillRect(hx + 2, hy + 1, 1, 1); ctx.fillRect(hx + 7, hy + 1, 1, 1); break;
+        case 'down':
+          ctx.fillRect(hx + 2, hy + 8, 1, 1); ctx.fillRect(hx + 7, hy + 8, 1, 1); break;
+      }
       return;
     }
 
