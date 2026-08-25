@@ -620,7 +620,7 @@
           <button class="neon-btn gold" id="startLbBtn">排行榜</button>
         </div>
         <div class="hint">按 空格键 开始</div>
-        <div class="version-tag">v0.1p</div>
+        <div class="version-tag">v0.1q</div>
       </div>
 
       <!-- Pause Overlay -->
@@ -648,7 +648,7 @@
 
       <!-- Settings Overlay -->
       <div class="overlay" id="settingsOverlay">
-        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1p</span></h2>
+        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1q</span></h2>
 
         <div class="settings-group">
           <div class="settings-label">难度（影响初始速度）</div>
@@ -976,7 +976,7 @@
   function saveHighScore() {
     if (score > highScore) {
       highScore = score;
-      localStorage.setItem(userKey('neonSnakeHighScore'), String(highScore));
+      try { localStorage.setItem(userKey('neonSnakeHighScore'), String(highScore)); } catch (e) {}
       highScoreEl.textContent = highScore;
       return true;
     }
@@ -989,7 +989,7 @@
     catch (e) { return []; }
   }
   function addToLeaderboard(s) {
-    if (s <= 0) return false;
+    if (s <= 0) return;
     const lb = getLeaderboard();
     const now = new Date();
     const dateStr = (now.getMonth() + 1) + '/' + now.getDate();
@@ -997,7 +997,6 @@
     lb.sort((a, b) => b.score - a.score);
     const top5 = lb.slice(0, 5);
     try { localStorage.setItem(userKey('neonSnakeLeaderboard'), JSON.stringify(top5)); } catch (e) {}
-    return top5.some((e, i) => e.score === s && e.date === dateStr && i < 5) || s >= (top5[4] ? top5[4].score : 0);
   }
   function clearLeaderboard() {
     try { localStorage.removeItem(userKey('neonSnakeLeaderboard')); } catch (e) {}
@@ -1085,7 +1084,8 @@
     try { localStorage.setItem(userKey('neonSnakeSkin'), String(skinIndex)); } catch (e) {}
     updateSkinDisplay();
     triggerSkinRipple();
-    if (gameState === 'playing' || gameState === 'paused') draw();
+    buildSkinOptions();
+    draw();
   }
 
   function startGame() {
@@ -1405,7 +1405,7 @@
         ctx.fillRect(x, y, GRID, GRID);
       } else {
         ctx.beginPath();
-        var rr = 2, rw = GRID - 1, rh = GRID - 1;
+        const rr = 2, rw = GRID - 1, rh = GRID - 1;
         ctx.moveTo(x + rr, y + 0.5);
         ctx.lineTo(x + rw - rr, y + 0.5);
         ctx.quadraticCurveTo(x + rw + 0.5, y + 0.5, x + rw + 0.5, y + rr);
@@ -1736,17 +1736,10 @@
 
     if (!currentUser) return; // 未登录时忽略游戏按键
 
-    if (key === ' ' || key === 'spacebar' || key === 'p') {
-      e.preventDefault();
-      if (gameState === 'start' || gameState === 'gameover') startGame();
-      else togglePause();
-      return;
-    }
-    if (key === 'r') { startGame(); return; }
-    if (key === 'c') { cycleSkin(); return; }
-    // O 键：打开/关闭设置（键盘快捷键兜底）
+    // O 键和 Escape 优先处理（模态窗口打开时也能用）
     if (key === 'o') { e.preventDefault(); toggleSettings(); return; }
     if (key === 'escape') {
+      clearTimeout(_tapTimer);
       if (settingsOverlay.classList.contains('show') || lbOverlay.classList.contains('show')) {
         hideAllOverlays();
         if (pausedForModal && gameState === 'paused') {
@@ -1759,8 +1752,21 @@
       return;
     }
 
-    // 设置/排行榜模态窗口打开时，屏蔽其他游戏按键
-    if (isModalOpen()) return;
+    // 设置/排行榜模态窗口打开时，屏蔽空格/P/R等游戏控制键
+    if (isModalOpen()) {
+      // C 键切换皮肤在设置中也允许
+      if (key === 'c') { cycleSkin(); }
+      return;
+    }
+
+    if (key === ' ' || key === 'spacebar' || key === 'p') {
+      e.preventDefault();
+      if (gameState === 'start' || gameState === 'gameover') startGame();
+      else togglePause();
+      return;
+    }
+    if (key === 'r') { startGame(); return; }
+    if (key === 'c') { cycleSkin(); return; }
 
     if (gameState !== 'playing') return;
     switch (key) {
@@ -1885,6 +1891,14 @@
     settings.difficulty = b.dataset.diff;
     saveSettings();
     syncSettingsUI();
+    // 立即更新速度变量
+    const levels = Math.floor(score / 50);
+    gameSpeed = Math.max(MIN_SPEED, DIFFICULTY[settings.difficulty] - levels * SPEED_STEP);
+    // 游戏进行中则重启定时器以应用新速度
+    if (gameState === 'playing' && gameLoop) {
+      clearInterval(gameLoop);
+      gameLoop = setInterval(tick, gameSpeed);
+    }
   }));
   document.querySelectorAll('#wallOptions .option-btn').forEach(b => b.addEventListener('click', () => {
     settings.wallMode = b.dataset.wall;
@@ -1901,8 +1915,11 @@
     saveSettings();
     applyMapSize();
     syncSettingsUI();
-    // 立即重开游戏以应用新地图尺寸
-    if (gameState === 'playing' || gameState === 'paused') {
+    // 模态窗口打开时只重置画面，不在背后启动游戏
+    if (isModalOpen()) {
+      resetGame();
+      draw();
+    } else if (gameState === 'playing' || gameState === 'paused') {
       startGame();
     } else {
       resetGame();
@@ -2031,7 +2048,8 @@
   });
 
   document.getElementById('logoutBtn').addEventListener('click', () => {
-    if (gameState === 'playing') { clearInterval(gameLoop); gameLoop = null; }
+    if (gameLoop) { clearInterval(gameLoop); gameLoop = null; }
+    if (goldenTimer) { clearTimeout(goldenTimer); goldenTimer = null; }
     showLoginScreen();
     loginUserInput.value = '';
     loginPassInput.value = '';
