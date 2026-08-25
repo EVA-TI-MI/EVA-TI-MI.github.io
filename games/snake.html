@@ -556,7 +556,7 @@
   </div>
 
   <div class="top-bar">
-    <button class="top-btn" onclick="location.href='index.html'">← 首页</button>
+    <button class="top-btn" id="homeBtn">← 首页</button>
     <div class="game-title">NEON SNAKE</div>
     <div style="display:flex;gap:6px;align-items:center;">
       <div class="user-info" id="userInfo" style="display:none;">
@@ -566,7 +566,7 @@
       </div>
       <button class="top-btn right" id="lbBtn" title="排行榜">🏆</button>
       <button class="top-btn" id="winSizeBtn" title="窗口大小">⛶</button>
-      <button class="top-btn" id="settingsBtn" title="设置（双击快速切换 / O键）" onclick="if(window.toggleSettings)window.toggleSettings()">⚙</button>
+      <button class="top-btn" id="settingsBtn" title="设置（双击快速切换 / O键）">⚙</button>
     </div>
   </div>
 
@@ -609,7 +609,7 @@
           <button class="neon-btn gold" id="startLbBtn">排行榜</button>
         </div>
         <div class="hint">按 空格键 开始</div>
-        <div class="version-tag">v0.1n</div>
+        <div class="version-tag">v0.1o</div>
       </div>
 
       <!-- Pause Overlay -->
@@ -637,7 +637,7 @@
 
       <!-- Settings Overlay -->
       <div class="overlay" id="settingsOverlay">
-        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1n</span></h2>
+        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1o</span></h2>
 
         <div class="settings-group">
           <div class="settings-label">难度（影响初始速度）</div>
@@ -1762,18 +1762,27 @@
 
   // ===== Button Events =====
   document.getElementById('startBtn').addEventListener('click', startGame);
+  // 首页按钮：游戏中先回到开始界面，在开始界面才回应用选择页
+  document.getElementById('homeBtn').addEventListener('click', () => {
+    if (gameState === 'start' && !isModalOpen()) {
+      location.href = 'index.html';
+    } else {
+      // 停止游戏，回到开始界面
+      if (gameLoop) { clearInterval(gameLoop); gameLoop = null; }
+      pausedForModal = false;
+      hideAllOverlays();
+      resetGame();
+      gameState = 'start';
+      startOverlay.classList.add('show');
+      draw();
+    }
+  });
   function _openSettings() {
     syncSettingsUI();
     showOverlay(settingsOverlay);
   }
-  window._openSettings = _openSettings;
-  // 开始/暂停界面的设置按钮：click + pointerdown 双保险
-  const _startSetBtn = document.getElementById('startSettingsBtn');
-  _startSetBtn.addEventListener('click', _openSettings);
-  _startSetBtn.addEventListener('pointerdown', function(e){ e.preventDefault(); });
-  const _pauseSetBtn = document.getElementById('pauseSettingsBtn');
-  _pauseSetBtn.addEventListener('click', _openSettings);
-  _pauseSetBtn.addEventListener('pointerdown', function(e){ e.preventDefault(); });
+  document.getElementById('startSettingsBtn').addEventListener('click', _openSettings);
+  document.getElementById('pauseSettingsBtn').addEventListener('click', _openSettings);
   document.getElementById('startLbBtn').addEventListener('click', () => { renderLeaderboard(); showOverlay(lbOverlay); });
   document.getElementById('retryBtn').addEventListener('click', startGame);
   document.getElementById('overLbBtn').addEventListener('click', () => { renderLeaderboard(); showOverlay(lbOverlay); });
@@ -1799,7 +1808,7 @@
   // 暴露到全局，供 inline onclick 兜底
   window.toggleSettings = toggleSettings;
 
-  // 齿轮按钮：pointerdown 比 click 更可靠（不依赖 mouseup）
+  // 齿轮按钮：pointerdown 处理单击/双击
   let _lastTapTime = 0;
   let _tapTimer = null;
   function _handleGearTap(e) {
@@ -1807,17 +1816,23 @@
     e.stopPropagation();
     const now = Date.now();
     if (now - _lastTapTime < 300) {
-      // 双击：立即切换
+      // 双击：立即切换（开↔关）
       clearTimeout(_tapTimer);
       _lastTapTime = 0;
       toggleSettings();
     } else {
       _lastTapTime = now;
-      _tapTimer = setTimeout(() => { toggleSettings(); }, 220);
+      _tapTimer = setTimeout(() => {
+        // 单击：只打开设置，不重复切换
+        if (!settingsOverlay.classList.contains('show')) {
+          if (gameState === 'playing') { togglePause(); pausedForModal = true; }
+          syncSettingsUI();
+          showOverlay(settingsOverlay);
+        }
+      }, 200);
     }
   }
-  const _gearBtn = document.getElementById('settingsBtn');
-  _gearBtn.addEventListener('pointerdown', _handleGearTap);
+  document.getElementById('settingsBtn').addEventListener('pointerdown', _handleGearTap);
 
   document.getElementById('winSizeBtn').addEventListener('click', cycleWinSize);
   document.getElementById('settingsCloseBtn').addEventListener('click', () => {
