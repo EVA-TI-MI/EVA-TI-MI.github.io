@@ -138,27 +138,18 @@
   .overlay {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    display: flex;
+    display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     background: rgba(10, 10, 18, 0.88);
     color: #fff;
     text-align: center;
-    pointer-events: none;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0s linear 0.2s;
     border-radius: 4px;
     padding: 20px;
     overflow-y: auto;
   }
-  .overlay.show {
-    opacity: 1;
-    pointer-events: auto;
-    visibility: visible;
-    transition: opacity 0.2s, visibility 0s;
-  }
+  .overlay.show { display: flex; }
   .overlay h2 {
     font-size: 28px;
     color: #00ffc8;
@@ -618,7 +609,7 @@
           <button class="neon-btn gold" id="startLbBtn">排行榜</button>
         </div>
         <div class="hint">按 空格键 开始</div>
-        <div class="version-tag">v0.1k</div>
+        <div class="version-tag">v0.1l</div>
       </div>
 
       <!-- Pause Overlay -->
@@ -646,7 +637,7 @@
 
       <!-- Settings Overlay -->
       <div class="overlay" id="settingsOverlay">
-        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1k</span></h2>
+        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">v0.1l</span></h2>
 
         <div class="settings-group">
           <div class="settings-label">难度（影响初始速度）</div>
@@ -844,6 +835,7 @@
   let settings = { difficulty: 'normal', wallMode: 'solid', sound: 'on', mapSize: 'medium', winSize: 'small' };
   let currentUser = null; // { username }
   let skinRipple = null; // { time, color } 皮肤切换边界涟漪
+  let pausedForModal = false; // 因打开设置/排行榜而暂停，关闭后直接恢复
 
   // ===== Auth (local-only, SHA-256 + salt) =====
   function getUsers() {
@@ -1088,6 +1080,7 @@
   function startGame() {
     if (!currentUser) return;
     resetGame();
+    pausedForModal = false;
     gameState = 'playing';
     hideAllOverlays();
     if (gameLoop) clearInterval(gameLoop);
@@ -1743,7 +1736,10 @@
     if (key === 'escape') {
       if (settingsOverlay.classList.contains('show') || lbOverlay.classList.contains('show')) {
         hideAllOverlays();
-        if (gameState === 'start') startOverlay.classList.add('show');
+        if (pausedForModal && gameState === 'paused') {
+          pausedForModal = false;
+          togglePause();
+        } else if (gameState === 'start') startOverlay.classList.add('show');
         else if (gameState === 'paused') pauseOverlay.classList.add('show');
         else if (gameState === 'gameover') gameOverOverlay.classList.add('show');
       }
@@ -1779,26 +1775,32 @@
   document.getElementById('pauseRestartBtn').addEventListener('click', startGame);
 
   document.getElementById('settingsBtn').addEventListener('click', () => {
-    if (gameState === 'playing') togglePause();
+    if (gameState === 'playing') { togglePause(); pausedForModal = true; }
     syncSettingsUI();
     showOverlay(settingsOverlay);
   });
   document.getElementById('winSizeBtn').addEventListener('click', cycleWinSize);
   document.getElementById('settingsCloseBtn').addEventListener('click', () => {
     hideAllOverlays();
-    if (gameState === 'start') startOverlay.classList.add('show');
+    if (pausedForModal && gameState === 'paused') {
+      pausedForModal = false;
+      togglePause(); // 直接恢复游戏
+    } else if (gameState === 'start') startOverlay.classList.add('show');
     else if (gameState === 'paused') pauseOverlay.classList.add('show');
     else if (gameState === 'gameover') gameOverOverlay.classList.add('show');
   });
 
   document.getElementById('lbBtn').addEventListener('click', () => {
-    if (gameState === 'playing') togglePause();
+    if (gameState === 'playing') { togglePause(); pausedForModal = true; }
     renderLeaderboard();
     showOverlay(lbOverlay);
   });
   document.getElementById('lbCloseBtn').addEventListener('click', () => {
     hideAllOverlays();
-    if (gameState === 'start') startOverlay.classList.add('show');
+    if (pausedForModal && gameState === 'paused') {
+      pausedForModal = false;
+      togglePause();
+    } else if (gameState === 'start') startOverlay.classList.add('show');
     else if (gameState === 'paused') pauseOverlay.classList.add('show');
     else if (gameState === 'gameover') gameOverOverlay.classList.add('show');
   });
