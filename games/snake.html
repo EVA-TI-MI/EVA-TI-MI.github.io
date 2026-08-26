@@ -40,7 +40,7 @@
   /* ===== Top Bar ===== */
   .top-bar {
     position: relative;
-    z-index: 10;
+    z-index: 100;
     width: var(--game-w);
     max-width: 100%;
     display: flex;
@@ -60,6 +60,9 @@
     cursor: pointer;
     font-family: inherit;
     transition: all 0.2s;
+    pointer-events: auto;
+    position: relative;
+    z-index: 101;
   }
   .top-btn:hover {
     background: rgba(0, 255, 200, 0.15);
@@ -475,7 +478,7 @@
   /* ===== Skin Toast ===== */
   .skin-toast {
     position: absolute;
-    top: 50%;
+    top: 68%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0.8);
     display: flex;
@@ -574,7 +577,7 @@
 </head>
 <body>
   <!-- Login Overlay -->
-  <div class="overlay" id="loginOverlay" style="z-index:500;">
+  <div class="overlay" id="loginOverlay" style="z-index:500;position:fixed;">
     <div class="login-box">
       <div class="login-logo">NEON SNAKE</div>
       <div class="login-sub">霓虹贪吃蛇 · 请登录</div>
@@ -611,7 +614,7 @@
       </div>
       <button class="top-btn right" id="lbBtn" title="排行榜">🏆</button>
       <button class="top-btn" id="winSizeBtn" title="窗口大小">⛶</button>
-      <button class="top-btn" id="settingsBtn" title="设置（双击快速切换 / O键）">⚙</button>
+      <button class="top-btn" id="settingsBtn" title="设置（单击切换 / O键）">⚙</button>
     </div>
   </div>
 
@@ -642,7 +645,7 @@
       <canvas id="gameCanvas" width="600" height="400"></canvas>
 
       <!-- Start Overlay -->
-      <div class="overlay show" id="startOverlay">
+      <div class="overlay" id="startOverlay">
         <h2>霓虹贪吃蛇</h2>
         <p>方向键 / WASD：控制方向</p>
         <p>空格 / P：暂停　R：重新开始</p>
@@ -650,11 +653,11 @@
         <p id="startSettingsHint" style="color:#ffd700;margin-top:6px;">⚙ 设置难度 / 穿墙 / 地图　⛶ 切换窗口大小　O 键打开设置</p>
         <div class="btn-row">
           <button class="neon-btn" id="startBtn">开始游戏</button>
-          <button class="neon-btn" id="startSettingsBtn" onclick="if(window.openSettings)window.openSettings()">⚙ 设置 <span style="font-size:10px;opacity:0.6;">(O)</span></button>
+          <button class="neon-btn" id="startSettingsBtn">⚙ 设置 <span style="font-size:10px;opacity:0.6;">(O)</span></button>
           <button class="neon-btn gold" id="startLbBtn">排行榜</button>
         </div>
         <div class="hint">按 空格键 开始</div>
-        <div class="version-tag">V3.1</div>
+        <div class="version-tag">V3.2</div>
       </div>
 
       <!-- Pause Overlay -->
@@ -663,7 +666,7 @@
         <p>按 空格 / P 继续</p>
         <div class="btn-row">
           <button class="neon-btn" id="resumeBtn">继续</button>
-          <button class="neon-btn" id="pauseSettingsBtn" onclick="if(window.openSettings)window.openSettings()">⚙ 设置 <span style="font-size:10px;opacity:0.6;">(O)</span></button>
+          <button class="neon-btn" id="pauseSettingsBtn">⚙ 设置 <span style="font-size:10px;opacity:0.6;">(O)</span></button>
           <button class="neon-btn pink" id="pauseRestartBtn">重新开始</button>
         </div>
       </div>
@@ -682,7 +685,7 @@
 
       <!-- Settings Overlay -->
       <div class="overlay" id="settingsOverlay">
-        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">V3.1</span></h2>
+        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">V3.2</span></h2>
 
         <div class="settings-group">
           <div class="settings-label">难度（影响初始速度）</div>
@@ -1799,7 +1802,7 @@
     }
   }
 
-  // 切换设置面板（齿轮双击 / O 键）
+  // 切换设置面板（齿轮单击 / O 键）
   function toggleSettings() {
     if (settingsOverlay.classList.contains('show')) {
       closeModal();
@@ -1870,26 +1873,27 @@
   });
 
   // 开始/暂停界面的设置按钮
-  document.getElementById('startSettingsBtn').addEventListener('click', function(e) {
-    e.stopPropagation();
-    openSettings();
-  });
-  document.getElementById('pauseSettingsBtn').addEventListener('click', function(e) {
-    e.stopPropagation();
-    openSettings();
-  });
   document.getElementById('startLbBtn').addEventListener('click', () => { renderLeaderboard(); showOverlay(lbOverlay); });
   document.getElementById('retryBtn').addEventListener('click', startGame);
   document.getElementById('overLbBtn').addEventListener('click', () => { renderLeaderboard(); showOverlay(lbOverlay); });
   document.getElementById('resumeBtn').addEventListener('click', togglePause);
   document.getElementById('pauseRestartBtn').addEventListener('click', startGame);
 
-  // 齿轮按钮：单击切换设置面板
-  document.getElementById('settingsBtn').addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleSettings();
-  });
+  // 齿轮 + 设置按钮：在 document 捕获阶段处理，确保任何情况下都能响应
+  document.addEventListener('click', function(e) {
+    const gear = e.target.closest('#settingsBtn');
+    const startSet = e.target.closest('#startSettingsBtn');
+    const pauseSet = e.target.closest('#pauseSettingsBtn');
+    if (gear) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleSettings();
+    } else if (startSet || pauseSet) {
+      e.preventDefault();
+      e.stopPropagation();
+      openSettings();
+    }
+  }, true);
 
   document.getElementById('winSizeBtn').addEventListener('click', cycleWinSize);
   document.getElementById('settingsCloseBtn').addEventListener('click', closeModal);
@@ -2093,6 +2097,22 @@
   }
 
   // ===== Init =====
+  function assertStartState() {
+    // 重新断言开始界面状态，防止任何流程意外覆盖
+    if (gameState === 'start' && !isModalOpen()) {
+      if (currentUser) {
+        if (!startOverlay.classList.contains('show')) {
+          showOverlay(startOverlay);
+        }
+        canvas.style.pointerEvents = 'none';
+      } else {
+        const lo = document.getElementById('loginOverlay');
+        if (!lo.classList.contains('show')) lo.classList.add('show');
+        canvas.style.pointerEvents = 'none';
+      }
+    }
+  }
+
   (function init() {
     // Check saved session
     const savedUser = localStorage.getItem('neonSnakeCurrentUser');
@@ -2112,6 +2132,9 @@
         showOverlay(startOverlay);
         draw();
         requestAnimationFrame(animLoop);
+        // 页面完全加载后再次断言状态
+        window.addEventListener('load', assertStartState);
+        setTimeout(assertStartState, 50);
         return;
       }
     }
@@ -2125,6 +2148,8 @@
     canvas.style.pointerEvents = 'none';
     draw();
     requestAnimationFrame(animLoop);
+    window.addEventListener('load', assertStartState);
+    setTimeout(assertStartState, 50);
   })();
 })();
 </script>
