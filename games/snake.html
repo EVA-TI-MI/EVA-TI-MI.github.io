@@ -540,7 +540,7 @@
 </head>
 <body>
   <!-- Login Overlay -->
-  <div class="overlay show" id="loginOverlay" style="z-index:500;">
+  <div class="overlay" id="loginOverlay" style="z-index:500;">
     <div class="login-box">
       <div class="login-logo">NEON SNAKE</div>
       <div class="login-sub">霓虹贪吃蛇 · 请登录</div>
@@ -913,6 +913,7 @@
     clearCurrentUser();
     hideAllOverlays();
     document.getElementById('loginOverlay').classList.add('show');
+    canvas.style.pointerEvents = 'none';
   }
   function hideLoginScreen() {
     document.getElementById('loginOverlay').classList.remove('show');
@@ -1102,11 +1103,11 @@
   function togglePause() {
     if (gameState === 'playing') {
       gameState = 'paused';
-      pauseOverlay.classList.add('show');
+      showOverlay(pauseOverlay);
       if (gameLoop) { clearInterval(gameLoop); gameLoop = null; }
     } else if (gameState === 'paused') {
       gameState = 'playing';
-      pauseOverlay.classList.remove('show');
+      hideAllOverlays();
       gameLoop = setInterval(tick, gameSpeed);
     }
   }
@@ -1122,7 +1123,7 @@
     const isNew = saveHighScore();
     newHighScoreEl.style.display = isNew ? 'block' : 'none';
     if (score > 0) addToLeaderboard(score);
-    gameOverOverlay.classList.add('show');
+    showOverlay(gameOverOverlay);
   }
 
   function setDirection(dir) {
@@ -1396,49 +1397,17 @@
       }
       ctx.stroke();
     } else if (theme === 'cyberpunk') {
-      // 赛博朋克：暗色底盘 + 霓虹黄边框 + 品红电路纹
+      // 赛博朋克：暗色底盘 + 霓虹黄边框 + 品红电路纹（方块风格，与其他皮肤一致）
       ctx.shadowBlur = pix ? 0 : 8;
       ctx.shadowColor = s.glow;
       // 暗色底盘
       ctx.fillStyle = s.dark;
-      if (pix) {
-        ctx.fillRect(x, y, GRID, GRID);
-      } else {
-        ctx.beginPath();
-        const rr = 2, rw = GRID - 1, rh = GRID - 1;
-        ctx.moveTo(x + rr, y + 0.5);
-        ctx.lineTo(x + rw - rr, y + 0.5);
-        ctx.quadraticCurveTo(x + rw + 0.5, y + 0.5, x + rw + 0.5, y + rr);
-        ctx.lineTo(x + rw + 0.5, y + rh - rr);
-        ctx.quadraticCurveTo(x + rw + 0.5, y + rh + 0.5, x + rw - rr, y + rh + 0.5);
-        ctx.lineTo(x + rr, y + rh + 0.5);
-        ctx.quadraticCurveTo(x + 0.5, y + rh + 0.5, x + 0.5, y + rh - rr);
-        ctx.lineTo(x + 0.5, y + rr);
-        ctx.quadraticCurveTo(x + 0.5, y + 0.5, x + rr, y + 0.5);
-        ctx.closePath();
-        ctx.fill();
-      }
+      ctx.fillRect(x, y, GRID, GRID);
+      ctx.shadowBlur = 0;
       // 霓虹黄边框
-      ctx.shadowBlur = pix ? 0 : 6;
       ctx.strokeStyle = bodyColor;
       ctx.lineWidth = pix ? 1 : 1.5;
-      if (pix) {
-        ctx.strokeRect(x + 0.5, y + 0.5, GRID - 1, GRID - 1);
-      } else {
-        ctx.beginPath();
-        ctx.moveTo(x + rr, y + 0.5);
-        ctx.lineTo(x + rw - rr, y + 0.5);
-        ctx.quadraticCurveTo(x + rw + 0.5, y + 0.5, x + rw + 0.5, y + rr);
-        ctx.lineTo(x + rw + 0.5, y + rh - rr);
-        ctx.quadraticCurveTo(x + rw + 0.5, y + rh + 0.5, x + rw - rr, y + rh + 0.5);
-        ctx.lineTo(x + rr, y + rh + 0.5);
-        ctx.quadraticCurveTo(x + 0.5, y + rh + 0.5, x + 0.5, y + rh - rr);
-        ctx.lineTo(x + 0.5, y + rr);
-        ctx.quadraticCurveTo(x + 0.5, y + 0.5, x + rr, y + 0.5);
-        ctx.closePath();
-        ctx.stroke();
-      }
-      ctx.shadowBlur = 0;
+      ctx.strokeRect(x + 0.5, y + 0.5, GRID - 1, GRID - 1);
       // 品红电路纹（身体段）
       if (!isHead) {
         ctx.fillStyle = '#ff003c';
@@ -1654,10 +1623,12 @@
     gameOverOverlay.classList.remove('show');
     settingsOverlay.classList.remove('show');
     lbOverlay.classList.remove('show');
+    canvas.style.pointerEvents = '';
   }
   function showOverlay(ov) {
     hideAllOverlays();
     ov.classList.add('show');
+    canvas.style.pointerEvents = 'none';
   }
 
   // ===== Settings UI =====
@@ -1731,7 +1702,6 @@
   }
 
   // ===== 统一设置开关逻辑 =====
-  let _gearClickTimer = null;
 
   // 打开设置面板（处理各种游戏状态）
   function openSettings() {
@@ -1753,18 +1723,16 @@
 
   // 关闭当前模态窗口并恢复对应状态
   function closeModal() {
-    const wasSettings = settingsOverlay.classList.contains('show');
-    const wasLb = lbOverlay.classList.contains('show');
     hideAllOverlays();
     if (pausedForModal && gameState === 'paused') {
       pausedForModal = false;
       togglePause(); // 直接恢复游戏
     } else if (gameState === 'start') {
-      startOverlay.classList.add('show');
+      showOverlay(startOverlay);
     } else if (gameState === 'paused') {
-      pauseOverlay.classList.add('show');
+      showOverlay(pauseOverlay);
     } else if (gameState === 'gameover') {
-      gameOverOverlay.classList.add('show');
+      showOverlay(gameOverOverlay);
     }
   }
 
@@ -1790,7 +1758,6 @@
     // O 键和 Escape 优先处理（模态窗口打开时也能用）
     if (key === 'o') { e.preventDefault(); toggleSettings(); return; }
     if (key === 'escape') {
-      clearTimeout(_gearClickTimer);
       if (settingsOverlay.classList.contains('show') || lbOverlay.classList.contains('show')) {
         closeModal();
       }
@@ -1829,12 +1796,10 @@
       location.href = 'index.html';
     } else {
       if (gameLoop) { clearInterval(gameLoop); gameLoop = null; }
-      clearTimeout(_gearClickTimer);
       pausedForModal = false;
-      hideAllOverlays();
       resetGame();
       gameState = 'start';
-      startOverlay.classList.add('show');
+      showOverlay(startOverlay);
       draw();
     }
   });
@@ -1854,28 +1819,12 @@
   document.getElementById('resumeBtn').addEventListener('click', togglePause);
   document.getElementById('pauseRestartBtn').addEventListener('click', startGame);
 
-  // 齿轮按钮：单击延时打开，双击立即切换
-  function _handleGearClick(e) {
+  // 齿轮按钮：单击切换设置面板
+  document.getElementById('settingsBtn').addEventListener('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
-    if (_gearClickTimer) return; // 等待双击判定中
-    _gearClickTimer = setTimeout(function() {
-      _gearClickTimer = null;
-      // 单击：如果设置未打开则打开，已打开则不做操作（用完成按钮关闭）
-      if (!settingsOverlay.classList.contains('show')) {
-        openSettings();
-      }
-    }, 300);
-  }
-  function _handleGearDblClick(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    clearTimeout(_gearClickTimer);
-    _gearClickTimer = null;
     toggleSettings();
-  }
-  document.getElementById('settingsBtn').addEventListener('click', _handleGearClick);
-  document.getElementById('settingsBtn').addEventListener('dblclick', _handleGearDblClick);
+  });
 
   document.getElementById('winSizeBtn').addEventListener('click', cycleWinSize);
   document.getElementById('settingsCloseBtn').addEventListener('click', closeModal);
@@ -2074,7 +2023,7 @@
     syncSettingsUI();
     resetGame();
     gameState = 'start';
-    startOverlay.classList.add('show');
+    showOverlay(startOverlay);
     draw();
   }
 
@@ -2095,6 +2044,7 @@
         syncSettingsUI();
         resetGame();
         gameState = 'start';
+        showOverlay(startOverlay);
         draw();
         requestAnimationFrame(animLoop);
         return;
@@ -2105,6 +2055,9 @@
     applyWinSize();
     resetGame();
     gameState = 'start';
+    hideAllOverlays();
+    document.getElementById('loginOverlay').classList.add('show');
+    canvas.style.pointerEvents = 'none';
     draw();
     requestAnimationFrame(animLoop);
   })();
