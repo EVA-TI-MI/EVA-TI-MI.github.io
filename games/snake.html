@@ -657,7 +657,7 @@
           <button class="neon-btn gold" id="startLbBtn">排行榜</button>
         </div>
         <div class="hint">按 空格键 开始</div>
-        <div class="version-tag">V3.4</div>
+        <div class="version-tag">V3.5</div>
       </div>
 
       <!-- Pause Overlay -->
@@ -685,7 +685,7 @@
 
       <!-- Settings Overlay -->
       <div class="overlay" id="settingsOverlay">
-        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">V3.4</span></h2>
+        <h2 style="font-size:22px;">游戏设置 <span style="font-size:11px;color:#444;font-weight:normal;letter-spacing:1px;">V3.5</span></h2>
 
         <div class="settings-group">
           <div class="settings-label">难度（影响初始速度）</div>
@@ -877,9 +877,9 @@
   ];
 
   // ===== State =====
-  let snake, direction, nextDirection, food, goldenFood;
-  let score, highScore, gameSpeed, skinIndex;
-  let gameState, gameLoop, goldenTimer;
+  let snake = [], direction = 'right', nextDirection = 'right', food = null, goldenFood = null;
+  let score = 0, highScore = 0, gameSpeed = 120, skinIndex = 0;
+  let gameState = 'start', gameLoop = null, goldenTimer = null;
   let settings = { difficulty: 'normal', wallMode: 'solid', sound: 'on', mapSize: 'medium', winSize: 'small' };
   let currentUser = null; // { username }
   let skinRipple = null; // { time, color } 皮肤切换边界涟漪
@@ -1095,8 +1095,8 @@
   }
 
   function updateHUD() {
-    scoreEl.textContent = score;
-    lengthEl.textContent = snake.length;
+    scoreEl.textContent = (typeof score === 'number') ? score : 0;
+    lengthEl.textContent = snake ? snake.length : 3;
     modeBadgeWrap.style.display = settings.wallMode === 'wrap' ? '' : 'none';
   }
 
@@ -1772,16 +1772,14 @@
   // 打开设置面板（处理各种游戏状态）
   function openSettings() {
     try {
-      // 如果游戏正在进行，暂停并标记
       if (gameState === 'playing') {
         togglePause();
         pausedForModal = true;
       } else if (gameState === 'paused') {
-        // 从暂停界面打开设置，关闭时也直接恢复
         pausedForModal = true;
       }
-      syncSettingsUI();
       showOverlay(settingsOverlay);
+      try { syncSettingsUI(); } catch (e) {}
     } catch (err) {
       console.error('打开设置失败:', err);
     }
@@ -2089,8 +2087,8 @@
     updateSkinDisplay();
     applyMapSize();
     applyWinSize();
-    syncSettingsUI();
     resetGame();
+    syncSettingsUI();
     gameState = 'start';
     pauseOverlay.classList.remove('show');
     gameOverOverlay.classList.remove('show');
@@ -2119,7 +2117,7 @@
   }
 
   (function init() {
-    // Check saved session
+    try {
     const savedUser = localStorage.getItem('neonSnakeCurrentUser');
     if (savedUser) {
       const users = getUsers();
@@ -2131,8 +2129,8 @@
         updateSkinDisplay();
         applyMapSize();
         applyWinSize();
-        syncSettingsUI();
         resetGame();
+        syncSettingsUI();
         gameState = 'start';
         // 直接确保开始遮罩显示，不先隐藏再显示（避免动画重播闪烁）
         pauseOverlay.classList.remove('show');
@@ -2143,7 +2141,6 @@
         canvas.style.pointerEvents = 'none';
         draw();
         requestAnimationFrame(animLoop);
-        // 页面完全加载后再次断言状态
         window.addEventListener('load', assertStartState);
         setTimeout(assertStartState, 50);
         return;
@@ -2161,6 +2158,16 @@
     requestAnimationFrame(animLoop);
     window.addEventListener('load', assertStartState);
     setTimeout(assertStartState, 50);
+    } catch (err) {
+      console.error('初始化失败:', err);
+      // 兜底：确保开始界面可用
+      gameState = 'start';
+      resetGame();
+      startOverlay.classList.add('show');
+      canvas.style.pointerEvents = 'none';
+      draw();
+      requestAnimationFrame(animLoop);
+    }
   })();
 })();
 </script>
