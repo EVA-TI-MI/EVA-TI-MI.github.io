@@ -616,7 +616,7 @@
         <p id="startSettingsHint" style="color:#ffd700;margin-top:6px;">⚙ 设置难度 / 穿墙 / 地图　⛶ 切换窗口大小　O 键打开设置</p>
         <div class="btn-row">
           <button class="neon-btn" id="startBtn">开始游戏</button>
-          <button class="neon-btn" id="startSettingsBtn" onclick="if(window._openSettings)window._openSettings()">⚙ 设置 <span style="font-size:10px;opacity:0.6;">(O)</span></button>
+          <button class="neon-btn" id="startSettingsBtn" onclick="if(window.openSettings)window.openSettings()">⚙ 设置 <span style="font-size:10px;opacity:0.6;">(O)</span></button>
           <button class="neon-btn gold" id="startLbBtn">排行榜</button>
         </div>
         <div class="hint">按 空格键 开始</div>
@@ -629,7 +629,7 @@
         <p>按 空格 / P 继续</p>
         <div class="btn-row">
           <button class="neon-btn" id="resumeBtn">继续</button>
-          <button class="neon-btn" id="pauseSettingsBtn" onclick="if(window._openSettings)window._openSettings()">⚙ 设置 <span style="font-size:10px;opacity:0.6;">(O)</span></button>
+          <button class="neon-btn" id="pauseSettingsBtn" onclick="if(window.openSettings)window.openSettings()">⚙ 设置 <span style="font-size:10px;opacity:0.6;">(O)</span></button>
           <button class="neon-btn pink" id="pauseRestartBtn">重新开始</button>
         </div>
       </div>
@@ -1730,6 +1730,57 @@
     syncSettingsUI();
   }
 
+  // ===== 统一设置开关逻辑 =====
+  let _gearClickTimer = null;
+
+  // 打开设置面板（处理各种游戏状态）
+  function openSettings() {
+    try {
+      // 如果游戏正在进行，暂停并标记
+      if (gameState === 'playing') {
+        togglePause();
+        pausedForModal = true;
+      } else if (gameState === 'paused') {
+        // 从暂停界面打开设置，关闭时也直接恢复
+        pausedForModal = true;
+      }
+      syncSettingsUI();
+      showOverlay(settingsOverlay);
+    } catch (err) {
+      console.error('打开设置失败:', err);
+    }
+  }
+
+  // 关闭当前模态窗口并恢复对应状态
+  function closeModal() {
+    const wasSettings = settingsOverlay.classList.contains('show');
+    const wasLb = lbOverlay.classList.contains('show');
+    hideAllOverlays();
+    if (pausedForModal && gameState === 'paused') {
+      pausedForModal = false;
+      togglePause(); // 直接恢复游戏
+    } else if (gameState === 'start') {
+      startOverlay.classList.add('show');
+    } else if (gameState === 'paused') {
+      pauseOverlay.classList.add('show');
+    } else if (gameState === 'gameover') {
+      gameOverOverlay.classList.add('show');
+    }
+  }
+
+  // 切换设置面板（齿轮双击 / O 键）
+  function toggleSettings() {
+    if (settingsOverlay.classList.contains('show')) {
+      closeModal();
+    } else {
+      openSettings();
+    }
+  }
+
+  // 暴露到全局
+  window.openSettings = openSettings;
+  window.toggleSettings = toggleSettings;
+
   // ===== Keyboard =====
   document.addEventListener('keydown', (e) => {
     const key = e.key.toLowerCase();
@@ -1739,22 +1790,15 @@
     // O 键和 Escape 优先处理（模态窗口打开时也能用）
     if (key === 'o') { e.preventDefault(); toggleSettings(); return; }
     if (key === 'escape') {
-      clearTimeout(_tapTimer);
+      clearTimeout(_gearClickTimer);
       if (settingsOverlay.classList.contains('show') || lbOverlay.classList.contains('show')) {
-        hideAllOverlays();
-        if (pausedForModal && gameState === 'paused') {
-          pausedForModal = false;
-          togglePause();
-        } else if (gameState === 'start') startOverlay.classList.add('show');
-        else if (gameState === 'paused') pauseOverlay.classList.add('show');
-        else if (gameState === 'gameover') gameOverOverlay.classList.add('show');
+        closeModal();
       }
       return;
     }
 
     // 设置/排行榜模态窗口打开时，屏蔽空格/P/R等游戏控制键
     if (isModalOpen()) {
-      // C 键切换皮肤在设置中也允许
       if (key === 'c') { cycleSkin(); }
       return;
     }
@@ -1779,13 +1823,13 @@
 
   // ===== Button Events =====
   document.getElementById('startBtn').addEventListener('click', startGame);
-  // 首页按钮：游戏中先回到开始界面，在开始界面才回应用选择页
+  // 首页按钮：游戏中先回到开始界面，在开始界面才回选择页
   document.getElementById('homeBtn').addEventListener('click', () => {
     if (gameState === 'start' && !isModalOpen()) {
       location.href = 'index.html';
     } else {
-      // 停止游戏，回到开始界面
       if (gameLoop) { clearInterval(gameLoop); gameLoop = null; }
+      clearTimeout(_gearClickTimer);
       pausedForModal = false;
       hideAllOverlays();
       resetGame();
@@ -1794,93 +1838,54 @@
       draw();
     }
   });
-  function _openSettings() {
-    try {
-      syncSettingsUI();
-      showOverlay(settingsOverlay);
-    } catch (err) {
-      console.error('打开设置失败:', err);
-    }
-  }
-  window._openSettings = _openSettings;
-  document.getElementById('startSettingsBtn').addEventListener('click', function(e){ e.stopPropagation(); _openSettings(); });
-  document.getElementById('pauseSettingsBtn').addEventListener('click', function(e){ e.stopPropagation(); _openSettings(); });
+
+  // 开始/暂停界面的设置按钮
+  document.getElementById('startSettingsBtn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    openSettings();
+  });
+  document.getElementById('pauseSettingsBtn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    openSettings();
+  });
   document.getElementById('startLbBtn').addEventListener('click', () => { renderLeaderboard(); showOverlay(lbOverlay); });
   document.getElementById('retryBtn').addEventListener('click', startGame);
   document.getElementById('overLbBtn').addEventListener('click', () => { renderLeaderboard(); showOverlay(lbOverlay); });
   document.getElementById('resumeBtn').addEventListener('click', togglePause);
   document.getElementById('pauseRestartBtn').addEventListener('click', startGame);
 
-  // 双击齿轮快速切换设置面板
-  function toggleSettings() {
-    if (settingsOverlay.classList.contains('show')) {
-      hideAllOverlays();
-      if (pausedForModal && gameState === 'paused') {
-        pausedForModal = false;
-        togglePause();
-      } else if (gameState === 'start') startOverlay.classList.add('show');
-      else if (gameState === 'paused') pauseOverlay.classList.add('show');
-      else if (gameState === 'gameover') gameOverOverlay.classList.add('show');
-    } else {
-      if (gameState === 'playing') { togglePause(); pausedForModal = true; }
-      syncSettingsUI();
-      showOverlay(settingsOverlay);
-    }
-  }
-  // 暴露到全局，供 inline onclick 兜底
-  window.toggleSettings = toggleSettings;
-
-  // 齿轮按钮：pointerdown 处理单击/双击
-  let _lastTapTime = 0;
-  let _tapTimer = null;
-  function _handleGearTap(e) {
+  // 齿轮按钮：单击延时打开，双击立即切换
+  function _handleGearClick(e) {
     e.preventDefault();
     e.stopPropagation();
-    const now = Date.now();
-    if (now - _lastTapTime < 300) {
-      // 双击：立即切换（开↔关）
-      clearTimeout(_tapTimer);
-      _lastTapTime = 0;
-      toggleSettings();
-    } else {
-      _lastTapTime = now;
-      _tapTimer = setTimeout(() => {
-        // 单击：只打开设置，不重复切换
-        if (!settingsOverlay.classList.contains('show')) {
-          if (gameState === 'playing') { togglePause(); pausedForModal = true; }
-          syncSettingsUI();
-          showOverlay(settingsOverlay);
-        }
-      }, 200);
-    }
+    if (_gearClickTimer) return; // 等待双击判定中
+    _gearClickTimer = setTimeout(function() {
+      _gearClickTimer = null;
+      // 单击：如果设置未打开则打开，已打开则不做操作（用完成按钮关闭）
+      if (!settingsOverlay.classList.contains('show')) {
+        openSettings();
+      }
+    }, 300);
   }
-  document.getElementById('settingsBtn').addEventListener('pointerdown', _handleGearTap);
+  function _handleGearDblClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    clearTimeout(_gearClickTimer);
+    _gearClickTimer = null;
+    toggleSettings();
+  }
+  document.getElementById('settingsBtn').addEventListener('click', _handleGearClick);
+  document.getElementById('settingsBtn').addEventListener('dblclick', _handleGearDblClick);
 
   document.getElementById('winSizeBtn').addEventListener('click', cycleWinSize);
-  document.getElementById('settingsCloseBtn').addEventListener('click', () => {
-    hideAllOverlays();
-    if (pausedForModal && gameState === 'paused') {
-      pausedForModal = false;
-      togglePause(); // 直接恢复游戏
-    } else if (gameState === 'start') startOverlay.classList.add('show');
-    else if (gameState === 'paused') pauseOverlay.classList.add('show');
-    else if (gameState === 'gameover') gameOverOverlay.classList.add('show');
-  });
+  document.getElementById('settingsCloseBtn').addEventListener('click', closeModal);
 
   document.getElementById('lbBtn').addEventListener('click', () => {
     if (gameState === 'playing') { togglePause(); pausedForModal = true; }
     renderLeaderboard();
     showOverlay(lbOverlay);
   });
-  document.getElementById('lbCloseBtn').addEventListener('click', () => {
-    hideAllOverlays();
-    if (pausedForModal && gameState === 'paused') {
-      pausedForModal = false;
-      togglePause();
-    } else if (gameState === 'start') startOverlay.classList.add('show');
-    else if (gameState === 'paused') pauseOverlay.classList.add('show');
-    else if (gameState === 'gameover') gameOverOverlay.classList.add('show');
-  });
+  document.getElementById('lbCloseBtn').addEventListener('click', closeModal);
   document.getElementById('lbClearBtn').addEventListener('click', () => {
     clearLeaderboard();
     renderLeaderboard();
