@@ -4,6 +4,11 @@ const CACHE_NAME = 'miaoda-station-v19';
 const TTS_CACHE = 'biquge-tts-v1';
 const ASSETS = [
   'index.html',
+  'go.html',
+  'chess.html',
+  'xiangqi.html',
+  'intchess.html',
+  'gomoku.html',
   'snake.html',
   'biquge.html',
   'novels_data.js',
