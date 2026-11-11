@@ -47,78 +47,144 @@
     .head h1{font-size:28px;letter-spacing:5px;}
     .cards{grid-template-columns:1fr;}
   }
+
+  /* ===== 三布局切换 ===== */
+  .layout-switch{display:inline-flex;gap:4px;padding:4px;border-radius:99px;background:rgba(212,168,75,.08);border:1px solid rgba(212,168,75,.25);}
+  .layout-switch button{appearance:none;border:0;cursor:pointer;padding:8px 14px;border-radius:99px;background:transparent;color:var(--sub);font-size:13px;letter-spacing:1px;font-family:inherit;transition:.2s;}
+  .layout-switch button:hover{color:var(--txt);}
+  .layout-switch button.active{background:var(--gold);color:#14110b;font-weight:600;}
+  .layout-body{width:100%;max-width:1180px;margin-top:22px;display:grid;gap:22px;min-width:0;}
+  .sidebar{min-width:0;display:none;}
+  .side-block{border-radius:16px;border:1px solid rgba(212,168,75,.22);padding:18px;background:linear-gradient(165deg,rgba(212,168,75,.07),#14110b 70%);}
+  .side-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:bold;color:var(--gold);letter-spacing:2px;margin-bottom:14px;}
+  .side-title::before{content:"";width:5px;height:16px;border-radius:3px;background:var(--gold);}
+  .side-links{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .side-links a{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border-radius:10px;background:rgba(255,255,255,.04);text-decoration:none;transition:.2s;}
+  .side-links a:hover{background:rgba(212,168,75,.12);}
+  .side-links .s-ic{font-size:22px;color:var(--gold);}
+  .side-links .s-name{font-size:12px;color:var(--txt);}
+
+  body[data-layout="two-col"] .layout-body{grid-template-columns:1fr 300px;}
+  body[data-layout="two-col"] .sidebar{display:block;}
+  body[data-layout="two-col"] .cards{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
+
+  body[data-layout="portal"] .cards{grid-template-columns:1fr;gap:14px;}
+  body[data-layout="portal"] .app-card{flex-direction:row;align-items:center;min-height:0;padding:20px 24px;}
+  body[data-layout="portal"] .cc{flex-direction:row;align-items:center;gap:20px;flex:1;}
+  body[data-layout="portal"] .ci{margin:0;flex:0 0 52px;width:52px;height:52px;font-size:26px;}
+  body[data-layout="portal"] .card-text{flex:1;min-width:0;}
+  body[data-layout="portal"] .cd{margin-top:6px;}
+  body[data-layout="portal"] .cb{margin-top:0;white-space:nowrap;}
+
+  body[data-layout="grid"] .cards{gap:16px;}
+  body[data-layout="grid"][data-cols="1"] .cards{grid-template-columns:1fr;}
+  body[data-layout="grid"][data-cols="2"] .cards{grid-template-columns:repeat(2,1fr);}
+  body[data-layout="grid"][data-cols="3"] .cards{grid-template-columns:repeat(3,1fr);}
+  body[data-layout="grid"][data-cols="4"] .cards{grid-template-columns:repeat(4,1fr);}
+  .grid-last-wide{grid-column:1/-1;}
+  body[data-layout="grid"] .app-card{min-height:0;padding:18px 14px;align-items:center;text-align:center;}
+  body[data-layout="grid"] .cc{align-items:center;}
+  body[data-layout="grid"] .ci{margin:0;width:56px;height:56px;font-size:28px;}
+  body[data-layout="grid"] .ct{margin-top:12px;font-size:18px;letter-spacing:2px;}
+  body[data-layout="grid"] .ce,body[data-layout="grid"] .cd,body[data-layout="grid"] .cb{display:none;}
+
+  @media (max-width:960px){ body[data-layout="two-col"] .layout-body{grid-template-columns:1fr;} }
+  @media (max-width:520px){ body[data-layout="grid"] .cards{grid-template-columns:repeat(3,1fr);gap:10px;} }
 </style>
 </head>
-<body>
+<body data-layout="two-col">
   <div class="top">
     <a class="back" href="index.html">← 返回首页</a>
+    <div class="layout-switch" role="tablist" aria-label="布局切换">
+      <button type="button" data-layout="portal">门户</button>
+      <button type="button" data-layout="two-col" class="active">双栏</button>
+      <button type="button" data-layout="grid">网格</button>
+    </div>
   </div>
   <div class="head">
     <h1>卡牌</h1>
     <p>CARD GAMES · 纸牌博弈</p>
   </div>
+  <div class="layout-body">
   <div class="cards">
 
     <a href="klondike.html" class="app-card" style="--c:#e8453c">
       <div class="cc">
         <div class="ci">龙</div>
-        <div class="ct">接龙</div>
+        <div class="card-text"><div class="ct">接龙</div>
         <div class="ce">Klondike · Solitaire</div>
         <div class="cd">经典纸牌接龙：七列翻牌、A 到 K 四花收牌，翻一张与翻三张两种模式，支持撤销与最佳纪录。</div>
-        <div class="cb">开局接龙 →</div>
+        </div><div class="cb">开局接龙 →</div>
       </div>
     </a>
 
     <a href="spider.html" class="app-card" style="--c:#b98cff">
       <div class="cc">
         <div class="ci">蛛</div>
-        <div class="ct">蜘蛛纸牌</div>
+        <div class="card-text"><div class="ct">蜘蛛纸牌</div>
         <div class="ce">Spider · Two Decks</div>
         <div class="cd">两副牌十列布局，同色降序连牌成组移动，集齐 A 到 K 整组自动收起，冲击最高分。</div>
-        <div class="cb">织网开局 →</div>
+        </div><div class="cb">织网开局 →</div>
       </div>
     </a>
 
     <a href="doudizhu.html" class="app-card" style="--c:#e0794a">
       <div class="cc">
         <div class="ci">斗</div>
-        <div class="ct">斗地主</div>
+        <div class="card-text"><div class="ct">斗地主</div>
         <div class="ce">Dou Dizhu · Fighting</div>
         <div class="cd">经典三人斗地主，完整牌型判定与双 AI 对手，叫地主与炸弹翻倍，连胜可查。</div>
-        <div class="cb">叫地主 →</div>
+        </div><div class="cb">叫地主 →</div>
       </div>
     </a>
 
     <a href="uno.html" class="app-card" style="--c:#ff6fa5">
       <div class="cc">
         <div class="ci">牌</div>
-        <div class="ct">UNO</div>
+        <div class="card-text"><div class="ct">UNO</div>
         <div class="ce">UNO · Color Match</div>
         <div class="cd">经典 UNO 卡牌对决，功能牌全收录，与三名 AI 对战，率先清空手牌者胜。</div>
-        <div class="cb">发牌开战 →</div>
+        </div><div class="cb">发牌开战 →</div>
       </div>
     </a>
 
     <a href="zhajinhua.html" class="app-card" style="--c:#e8453c">
       <div class="cc">
         <div class="ci">金</div>
-        <div class="ct">炸金花</div>
+        <div class="card-text"><div class="ct">炸金花</div>
         <div class="ce">Zha Jin Hua · Three Cards</div>
         <div class="cd">经典三张牌比大小：豹子、顺金、金花、顺子、对子俱全，与两名 AI 闷牌加注博弈，看牌翻倍、比牌定胜负，纯娱乐计分。</div>
-        <div class="cb">发牌上桌 →</div>
+        </div><div class="cb">发牌上桌 →</div>
       </div>
     </a>
 
     <a href="cardtrain.html" class="app-card" style="--c:#3d8bd9">
       <div class="cc">
         <div class="ci">车</div>
-        <div class="ct">接火车</div>
+        <div class="card-text"><div class="ct">接火车</div>
         <div class="ce">Train · Card Chain</div>
         <div class="cd">双人扑克接火车：轮流翻牌接入列车，点数与车头车尾相同即整段吃掉，牌运与节奏之争，先出完手牌者胜。</div>
-        <div class="cb">开动列车 →</div>
+        </div><div class="cb">开动列车 →</div>
       </div>
     </a>
   </div>
+  <aside class="sidebar">
+    <div class="side-block">
+      <div class="side-title">板块导航</div>
+      <div class="side-links">
+        <a href="chess-hub.html"><span class="s-ic">棋</span><span class="s-name">棋院</span></a>
+        <a href="puzzle-hub.html"><span class="s-ic">谜</span><span class="s-name">益智</span></a>
+        <a href="casual-hub.html"><span class="s-ic">乐</span><span class="s-name">休闲</span></a>
+        <a href="tools-hub.html"><span class="s-ic">工</span><span class="s-name">效率</span></a>
+        <a href="cards-hub.html"><span class="s-ic">牌</span><span class="s-name">卡牌</span></a>
+        <a href="mahjong-hub.html"><span class="s-ic">雀</span><span class="s-name">麻将</span></a>
+        <a href="learn-hub.html"><span class="s-ic">学</span><span class="s-name">学习</span></a>
+        <a href="audio-hub.html"><span class="s-ic">音</span><span class="s-name">音乐</span></a>
+        <a href="create-hub.html"><span class="s-ic">创</span><span class="s-name">养成</span></a>
+      </div>
+    </div>
+  </aside>
+</div>
   <div class="foot">妙搭小站 · 卡牌 · 纸牌博弈</div>
 <script>
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
@@ -140,5 +206,31 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
 })();
 </script>
 <script src="sounds.js"></script>
+<script>
+(function(){
+  var KEY="tanlan-layout";
+  var body=document.body;
+  var btns=Array.prototype.slice.call(document.querySelectorAll(".layout-switch button"));
+  function applyLayout(l){
+    if(["portal","two-col","grid"].indexOf(l)===-1) l="two-col";
+    body.setAttribute("data-layout",l);
+    var all=body.querySelectorAll(".app-card");
+    all.forEach(function(c){c.classList.remove("grid-last-wide");});
+    var cols=3;
+    if(l==="grid"){
+      var n=all.length;
+      cols=n<=2?n:(n%4===0?4:3);
+      body.setAttribute("data-cols",String(cols));
+      if(n%cols===1){all[n-1].classList.add("grid-last-wide");}
+    }else{body.removeAttribute("data-cols");}
+    btns.forEach(function(b){b.classList.toggle("active",b.getAttribute("data-layout")===l);});
+    try{localStorage.setItem(KEY,l);}catch(e){}
+  }
+  btns.forEach(function(btn){btn.addEventListener("click",function(){applyLayout(btn.getAttribute("data-layout"));});});
+  var saved="two-col";
+  try{saved=localStorage.getItem(KEY)||"two-col";}catch(e){}
+  applyLayout(saved);
+})();
+</script>
 </body>
 </html>
