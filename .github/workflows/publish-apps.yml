@@ -1,0 +1,82 @@
+name: Publish Jing-series Apps
+
+# 触发方式：向 site-update 分支推送一次发布载荷（site/ = 站点文件，apks/ = 签名安装包）。
+# 由 Actions 用仓库自带的 GITHUB_TOKEN 完成两件事：
+#   1) 把 site/ 同步到 main 分支的 games/ 目录（GitHub Pages 会自动重新部署）
+#   2) 把 apks/ 上传为 GitHub Release 附件（tag apps-v1.3.0）
+on:
+  push:
+    branches: [site-update]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-jing-apps
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout publishing branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Stage payload outside the worktree
+        run: |
+          set -e
+          mkdir -p /tmp/payload/site /tmp/payload/apks
+          cp -a site/. /tmp/payload/site/
+          cp -a apks/. /tmp/payload/apks/
+          echo "APK files:"
+          ls -lh /tmp/payload/apks
+          count=$(find /tmp/payload/apks -maxdepth 1 -name '*.apk' | wc -l)
+          echo "apk_count=$count" >> "$GITHUB_ENV"
+          if [ "$count" -lt 3 ]; then
+            echo "Not all APKs uploaded yet, skip publishing this run."
+          fi
+
+      - name: Sync promo page into games/ on main
+        if: env.apk_count == '3'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B main origin/main
+          mkdir -p games/apps
+          cp -a /tmp/payload/site/. games/
+          git add games
+          if git diff --cached --quiet; then
+            echo "Site files already up to date."
+          else
+            git commit -m "chore: sync Jing-series promo page and entries (V4.14.1)"
+            git push origin main
+          fi
+
+      - name: Publish APK assets to GitHub Release
+        if: env.apk_count == '3'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          TAG="apps-v1.3.0"
+          NOTES="静锁 v1.3.0 / 静刷 v1.3.0 / 静药 v0.2.0 官方签名安装包。
+
+          三款均为纯本地 Android 应用：无广告、不联网、不收集数据。
+          基础功能永久免费，高级功能 16 元一次买断、离线激活码解锁。
+          安装时若提示「未知来源」，允许本次安装即可。
+          开发者：董智伟 · QQ 2208144236 · 邮箱 2208144236@qq.com"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, refreshing assets only."
+          else
+            gh release create "$TAG" --target main \
+              --title "静系列 Android 安装包 v1.3.0" --notes "$NOTES"
+          fi
+          gh release upload "$TAG" /tmp/payload/apks/*.apk --clobber
+          gh release view "$TAG" --json assets --jq '.assets[].name'

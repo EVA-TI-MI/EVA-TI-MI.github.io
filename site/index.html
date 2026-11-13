@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="creative-medium" content="other">
+<meta name="theme-color" content="#0f0d08">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>妙搭小站 - 九大板块 · 游戏与工具</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root{
+    --bg:#0f0d08; --paper:#16130c; --txt:#e8dcc8; --sub:#9a8868; --gold:#d4a84b;
+  }
+  html,body{background:var(--bg);}
+  body {
+    min-height: 100vh;
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--txt);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 24px 20px 30px;
+    background:
+      radial-gradient(ellipse at 18% 0%, rgba(212,168,75,.12) 0%, transparent 52%),
+      radial-gradient(ellipse at 85% 8%, rgba(70,195,154,.08) 0%, transparent 48%),
+      radial-gradient(ellipse at 80% 100%, rgba(110,168,254,.07) 0%, transparent 50%),
+      var(--bg);
+  }
+
+  /* ===================== 顶部工具条 ===================== */
+  .topbar{
+    width:100%; max-width:1180px; display:flex; align-items:center; gap:14px;
+    flex-wrap:wrap; margin-bottom:18px;
+  }
+  .brand{ display:flex; flex-direction:column; margin-right:auto; }
+  .brand .b-name{
+    font-family:"STKaiti","KaiTi","楷体",serif; font-size:26px; font-weight:bold; letter-spacing:4px;
+    background:linear-gradient(135deg,#e8c77a 0%,#d4a84b 45%,#f0dc9e 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .brand .b-en{ font-size:10px; letter-spacing:2px; color:var(--sub); text-transform:uppercase; margin-top:2px; }
+
+  .layout-switch{
+    display:inline-flex; gap:4px; padding:4px; border-radius:99px;
+    background:rgba(212,168,75,.08); border:1px solid rgba(212,168,75,.25);
+  }
+  .layout-switch button{
+    appearance:none; border:0; cursor:pointer; padding:8px 16px; border-radius:99px;
+    background:transparent; color:var(--sub); font-size:13px; letter-spacing:1px; transition:.2s;
+    font-family:inherit;
+  }
+  .layout-switch button:hover{ color:var(--txt); }
+  .layout-switch button.active{ background:var(--gold); color:#14110b; font-weight:600; }
+
+  .search-box{ display:none; align-items:center; gap:8px; }
+  .search-box input{
+    width:200px; padding:8px 14px; border-radius:9px; font-size:13px; color:var(--txt);
+    background:rgba(255,255,255,.06); border:1px solid rgba(212,168,75,.3); outline:none;
+    font-family:inherit;
+  }
+  .search-box input:focus{ border-color:var(--gold); }
+  .account-entry{
+    display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border-radius:99px;
+    color:var(--txt); text-decoration:none; font-size:13px; letter-spacing:1px;
+    background:rgba(212,168,75,.1); border:1px solid rgba(212,168,75,.4); transition:.25s;
+  }
+  .account-entry:hover{ background:var(--gold); color:#14110b; }
+  .app-entry{
+    display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border-radius:99px;
+    color:#14110b; text-decoration:none; font-size:13px; letter-spacing:1px; font-weight:600;
+    background:linear-gradient(135deg,#e8c77a,#d4a84b); border:1px solid var(--gold); transition:.25s;
+  }
+  .app-entry:hover{ background:#f0dc9e; transform:translateY(-2px); }
+  .banner-app{ display:inline-block; margin-top:14px; padding:9px 20px; border-radius:9px;
+    color:#14110b; background:var(--gold); font-size:13px; letter-spacing:1px; font-weight:600; }
+  .banner-app:hover{ background:#f0dc9e; }
+
+  /* ===================== 门户版专属区块 ===================== */
+  .portal-nav{ display:none; width:100%; max-width:1180px; }
+  .portal-nav ul{
+    display:flex; flex-wrap:wrap; gap:6px; list-style:none;
+    border-radius:12px; overflow:hidden; background:rgba(70,195,154,.08);
+    border:1px solid rgba(70,195,154,.28);
+  }
+  .portal-nav a{
+    display:block; padding:12px 18px; color:var(--txt); text-decoration:none; font-size:14px; letter-spacing:1px;
+  }
+  .portal-nav a:hover{ background:rgba(70,195,154,.16); }
+  .portal-nav a .nav-ic{ color:var(--gold); margin-right:6px; }
+
+  .banner{
+    display:none; width:100%; max-width:1180px; margin-top:16px; border-radius:16px;
+    padding:26px 28px; border:1px solid rgba(212,168,75,.25);
+    display:none; flex-direction:column;
+    background:linear-gradient(120deg,rgba(212,168,75,.14) 0%,rgba(70,195,154,.1) 55%,rgba(110,168,254,.08) 100%);
+  }
+  .banner h2{ font-family:"STKaiti","KaiTi","楷体",serif; font-size:26px; letter-spacing:4px; color:#e8c77a; }
+  .banner p{ margin-top:8px; font-size:13px; color:var(--sub); letter-spacing:2px; line-height:1.8; }
+
+  .tagcloud{ display:none; width:100%; max-width:1180px; margin-top:16px; flex-wrap:wrap; gap:8px; }
+  .tagcloud span{
+    padding:6px 12px; border-radius:8px; font-size:12px; color:var(--sub);
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+  }
+
+  /* ===================== 主体布局容器 ===================== */
+  .layout-body{ width:100%; max-width:1180px; margin-top:22px; display:grid; gap:22px; }
+  .main{ min-width:0; }
+  .sidebar{ min-width:0; display:none; }
+
+  .side-block{ border-radius:16px; border:1px solid rgba(212,168,75,.22); padding:18px;
+    background:linear-gradient(165deg,rgba(212,168,75,.07),#14110b 70%); }
+  .side-block + .side-block{ margin-top:18px; }
+  .side-title{ display:flex; align-items:center; gap:8px; font-size:16px; font-weight:bold; color:var(--gold);
+    letter-spacing:2px; margin-bottom:14px; }
+  .side-title::before{ content:""; width:5px; height:16px; border-radius:3px; background:var(--gold); }
+  .rec-list{ list-style:none; display:flex; flex-direction:column; gap:4px; }
+  .rec-list a{
+    display:flex; gap:12px; padding:10px 8px; border-radius:10px; text-decoration:none; color:var(--txt);
+    transition:.2s;
+  }
+  .rec-list a:hover{ background:rgba(212,168,75,.1); }
+  .rec-ic{ width:42px; height:42px; flex:0 0 42px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-size:20px; color:var(--gold); background:rgba(212,168,75,.12); }
+  .rec-txt{ min-width:0; }
+  .rec-name{ font-size:14px; letter-spacing:1px; }
+  .rec-desc{ font-size:11.5px; color:var(--sub); margin-top:3px; line-height:1.6; }
+  .topic-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .topic-grid a{ display:flex; flex-direction:column; align-items:center; gap:6px; text-decoration:none;
+    padding:12px 6px; border-radius:10px; background:rgba(255,255,255,.04); transition:.2s; }
+  .topic-grid a:hover{ background:rgba(212,168,75,.12); }
+  .topic-grid .t-ic{ font-size:22px; color:var(--gold); }
+  .topic-grid .t-name{ font-size:12px; color:var(--txt); }
+
+  /* ===================== 卡片（三模式共用） ===================== */
+  .hub-grid{ display:grid; gap:22px; }
+  .hub-card{
+    --c:#d4a84b; border-radius:18px; position:relative; overflow:hidden; text-decoration:none;
+    border:1px solid color-mix(in srgb,var(--c) 30%,transparent);
+    background:linear-gradient(165deg,color-mix(in srgb,var(--c) 10%,#14110b) 0%,#14110b 75%);
+    display:flex; flex-direction:column; padding:30px 28px 26px;
+    transition:transform .3s,box-shadow .3s,border-color .3s;
+  }
+  .hub-card:hover{ transform:translateY(-6px); box-shadow:0 20px 50px color-mix(in srgb,var(--c) 26%,transparent); border-color:var(--c); }
+  .hub-card::before{ content:""; position:absolute; top:-30%; right:-30%; width:300px; height:300px; border-radius:50%;
+    background:radial-gradient(circle,color-mix(in srgb,var(--c) 30%,transparent) 0%,transparent 70%); opacity:.55; pointer-events:none; }
+  .hub-inner{ position:relative; z-index:1; display:flex; flex-direction:column; flex:1; }
+  .hub-ic{ width:64px; height:64px; border-radius:15px; display:flex; align-items:center; justify-content:center; font-size:32px; color:var(--c);
+    background:color-mix(in srgb,var(--c) 15%,transparent); border:2px solid color-mix(in srgb,var(--c) 44%,transparent);
+    box-shadow:0 0 26px color-mix(in srgb,var(--c) 18%,transparent); }
+  .hub-title{ font-size:27px; font-weight:bold; margin-top:18px; color:var(--c); font-family:"STKaiti","KaiTi","楷体",serif; letter-spacing:4px; }
+  .hub-en{ font-size:11px; letter-spacing:2px; color:var(--sub); margin-top:4px; text-transform:uppercase; }
+  .hub-desc{ font-size:13.5px; line-height:1.9; color:rgba(255,255,255,.62); margin-top:12px; flex:1; }
+  .hub-meta{ display:flex; flex-wrap:wrap; gap:6px; margin-top:16px; }
+  .hub-tag{ padding:3px 10px; border-radius:5px; font-size:11.5px; color:var(--c);
+    background:color-mix(in srgb,var(--c) 13%,transparent); border:1px solid color-mix(in srgb,var(--c) 30%,transparent); }
+  .hub-btn{ margin-top:20px; padding:11px 22px; border-radius:8px; font-size:14.5px; font-weight:500; align-self:flex-start; letter-spacing:2px;
+    color:var(--c); background:color-mix(in srgb,var(--c) 16%,transparent); border:1px solid var(--c); transition:.2s; }
+  .hub-card:hover .hub-btn{ background:var(--c); color:#14110b; }
+
+  .footer{ margin-top:42px; text-align:center; color:#6a5a3e; font-size:12px; letter-spacing:2px; }
+  .footer .version{ margin-top:6px; font-size:11px; color:#8a7555; letter-spacing:1px; }
+
+  /* ============================================================
+     模式 A：门户导航版（参考 4399.com 首页：导航条 + 横幅 + 横排条目）
+     ============================================================ */
+  body[data-layout="portal"] .portal-nav,
+  body[data-layout="portal"] .banner,
+  body[data-layout="portal"] .tagcloud,
+  body[data-layout="portal"] .search-box{ display:flex; }
+  body[data-layout="portal"] .layout-body{ margin-top:0; }
+  body[data-layout="portal"] .hub-grid{ grid-template-columns:1fr; gap:14px; }
+  body[data-layout="portal"] .hub-card{ padding:20px 24px; flex-direction:row; align-items:center; gap:20px; }
+  body[data-layout="portal"] .hub-inner{ flex-direction:row; align-items:center; gap:20px; flex:1; }
+  body[data-layout="portal"] .hub-ic{ width:52px; height:52px; font-size:26px; flex:0 0 52px; margin:0; }
+  body[data-layout="portal"] .hub-title{ margin-top:0; font-size:22px; }
+  body[data-layout="portal"] .hub-en{ margin-top:2px; }
+  body[data-layout="portal"] .hub-text{ flex:1; min-width:0; }
+  body[data-layout="portal"] .hub-desc{ margin-top:6px; }
+  body[data-layout="portal"] .hub-meta{ margin-top:8px; }
+  body[data-layout="portal"] .hub-btn{ margin-top:0; white-space:nowrap; }
+  body[data-layout="portal"] .sidebar{ display:none; }
+
+  /* ============================================================
+     模式 B：双栏版（参考 4399 列表页：左大网格 + 右侧推荐边栏）
+     ============================================================ */
+  body[data-layout="two-col"] .layout-body{ grid-template-columns:1fr 300px; }
+  body[data-layout="two-col"] .sidebar{ display:block; }
+  body[data-layout="two-col"] .hub-grid{ grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:20px; }
+
+  /* ============================================================
+     模式 C：紧凑图标墙（参考 4399 游戏图标列表：小图标多列）
+     ============================================================ */
+  body[data-layout="grid"] .sidebar{ display:none; }
+  body[data-layout="grid"] .hub-grid{ grid-template-columns:repeat(3,1fr); gap:16px; }
+  body[data-layout="grid"] .hub-card{ padding:18px 14px; align-items:center; text-align:center; }
+  body[data-layout="grid"] .hub-inner{ align-items:center; }
+  body[data-layout="grid"] .hub-ic{ width:56px; height:56px; font-size:28px; margin:0; }
+  body[data-layout="grid"] .hub-title{ margin-top:12px; font-size:18px; letter-spacing:2px; }
+  body[data-layout="grid"] .hub-en,
+  body[data-layout="grid"] .hub-desc,
+  body[data-layout="grid"] .hub-meta,
+  body[data-layout="grid"] .hub-btn{ display:none; }
+
+  @media (max-width:960px){
+    body[data-layout="two-col"] .layout-body{ grid-template-columns:1fr; }
+  }
+  @media (max-width:768px){
+    body{ padding:20px 14px 30px; }
+    .topbar{ gap:10px; }
+    .brand .b-name{ font-size:22px; }
+    .layout-switch button{ padding:7px 12px; font-size:12px; }
+    .search-box input{ width:140px; }
+    body[data-layout="grid"] .hub-grid{ grid-template-columns:repeat(3,1fr); gap:12px; }
+    body[data-layout="portal"] .hub-inner{ flex-wrap:wrap; }
+  }
+  @media (max-width:520px){
+    body[data-layout="grid"] .hub-grid{ grid-template-columns:repeat(3,1fr); gap:10px; }
+    body[data-layout="two-col"] .hub-grid{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body data-layout="two-col">
+
+  <!-- 顶部工具条 -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="b-name">妙搭小站</span>
+      <span class="b-en">CHESS · PUZZLE · CASUAL · TOOLS</span>
+    </div>
+
+    <div class="search-box" id="searchBox">
+      <input type="text" id="searchInput" placeholder="搜索板块 / 游戏 / 应用…" autocomplete="off">
+    </div>
+
+    <nav class="layout-switch" role="tablist" aria-label="布局切换">
+      <button type="button" data-layout="portal" title="门户导航版">门户</button>
+      <button type="button" data-layout="two-col" title="双栏列表版">双栏</button>
+      <button type="button" data-layout="grid" title="紧凑图标墙">网格</button>
+    </nav>
+
+    <a href="apps.html" class="app-entry" title="静系列三款 Android 应用 · 官网下载安装包">静系列 App ↓</a>
+    <a href="account.html" class="account-entry" title="注册登录 · 全站排行榜">账号与排行榜</a>
+  </header>
+
+  <!-- 门户版：分类导航条 -->
+  <nav class="portal-nav">
+    <ul>
+      <li><a href="chess-hub.html"><span class="nav-ic">棋</span>棋院</a></li>
+      <li><a href="puzzle-hub.html"><span class="nav-ic">谜</span>益智</a></li>
+      <li><a href="casual-hub.html"><span class="nav-ic">乐</span>休闲</a></li>
+      <li><a href="tools-hub.html"><span class="nav-ic">工</span>效率</a></li>
+      <li><a href="cards-hub.html"><span class="nav-ic">牌</span>卡牌</a></li>
+      <li><a href="mahjong-hub.html"><span class="nav-ic">雀</span>麻将</a></li>
+      <li><a href="learn-hub.html"><span class="nav-ic">学</span>学习</a></li>
+      <li><a href="audio-hub.html"><span class="nav-ic">音</span>音乐听觉</a></li>
+      <li><a href="create-hub.html"><span class="nav-ic">创</span>养成创作</a></li>
+      <li><a href="apps.html"><span class="nav-ic">↓</span>静系列 App · 下载</a></li>
+    </ul>
+  </nav>
+
+  <!-- 门户版：横幅 -->
+  <section class="banner">
+    <h2>九大板块 · 游戏与工具，一站尽得</h2>
+    <p>弈境棋院 · 益智桌游 · 休闲阅读 · 卡牌博弈 · 方城麻将 · 学习充电 · 音乐听觉 · 养成创作；绝大多数内置离线 AI 对手与本地存档。</p>
+    <a class="banner-app" href="apps.html">新上架：静系列三款 Android 应用 · 官网下载 →</a>
+  </section>
+
+  <!-- 门户版：标签云 -->
+  <div class="tagcloud">
+    <span>离线 AI 对弈</span><span>唯一解保证</span><span>街机高分</span><span>纯本地工具</span>
+    <span>纸牌博弈</span><span>方城麻将</span><span>刷题复习</span><span>实时合成音频</span><span>像素创作</span><span>静系列 App</span>
+  </div>
+
+  <!-- 主体：主区 + 侧边栏 -->
+  <div class="layout-body">
+    <main class="main">
+      <div class="hub-grid" id="hubGrid">
+
+        <a href="apps.html" class="hub-card" style="--c:#ffd166" title="静系列 · 三款纯本地 Android 应用，官网直接下载安装包" aria-label="静系列应用介绍与下载">
+          <div class="hub-inner">
+            <div class="hub-ic">静</div>
+            <div class="hub-text">
+              <h2 class="hub-title">静系列</h2>
+              <div class="hub-en">Jing Apps · Android · 官网下载</div>
+              <p class="hub-desc">三款装在手机里的纯本地应用：静锁加密保险箱、静刷离线题库、静药吃药提醒。无广告、不联网、不收集数据，基础功能永久免费，高级功能一次买断；本站可直接下载已签名安装包。</p>
+              <div class="hub-meta"><span class="hub-tag">3 款 App</span><span class="hub-tag">纯本地</span><span class="hub-tag">APK 直下</span></div>
+            </div>
+            <div class="hub-btn">了解并下载 →</div>
+          </div>
+        </a>
+
+        <a href="chess-hub.html" class="hub-card" style="--c:#46c39a" title="棋院 · 十一种棋" aria-label="进入棋院">
+          <div class="hub-inner">
+            <div class="hub-ic">棋</div>
+            <div class="hub-text">
+              <h2 class="hub-title">棋院</h2>
+              <div class="hub-en">Board Games · AI 对弈</div>
+              <p class="hub-desc">围棋、中国/国际象棋、五子棋、黑白棋、跳棋、军棋、斗兽棋、将棋、国际跳棋——十一种棋全部内置可离线 AI 对手，人机双人随意切。</p>
+              <div class="hub-meta"><span class="hub-tag">11 款</span><span class="hub-tag">MCTS / Minimax AI</span><span class="hub-tag">全部离线</span></div>
+            </div>
+            <div class="hub-btn">进入棋院 →</div>
+          </div>
+        </a>
+
+        <a href="puzzle-hub.html" class="hub-card" style="--c:#5b9bf5" title="益智 · 数字推理" aria-label="进入益智">
+          <div class="hub-inner">
+            <div class="hub-ic">谜</div>
+            <div class="hub-text">
+              <h2 class="hub-title">益智</h2>
+              <div class="hub-en">Puzzles · 数字推理</div>
+              <p class="hub-desc">数独、数织、数回、数桥、数墙、美术馆、华容道、数字华容道、24 点、猜数字、飞行棋——纯逻辑解谜，题题保证有解。</p>
+              <div class="hub-meta"><span class="hub-tag">11 款</span><span class="hub-tag">唯一解保证</span><span class="hub-tag">最佳纪录</span></div>
+            </div>
+            <div class="hub-btn">进入益智 →</div>
+          </div>
+        </a>
+
+        <a href="casual-hub.html" class="hub-card" style="--c:#e0794a" title="休闲 · 街机与阅读" aria-label="进入休闲">
+          <div class="hub-inner">
+            <div class="hub-ic">乐</div>
+            <div class="hub-text">
+              <h2 class="hub-title">休闲</h2>
+              <div class="hub-en">Casual · Arcade &amp; Reading</div>
+              <p class="hub-desc">腾蛇（霓虹贪吃蛇）、墨渊阁书库、2048、扫雷、俄罗斯方块、推箱子、跳一跳、打砖块、记忆翻牌、打地鼠、小恐龙、乒乓球、连连看——轻松一刻。</p>
+              <div class="hub-meta"><span class="hub-tag">13 款</span><span class="hub-tag">街机高分</span><span class="hub-tag">有声阅读</span></div>
+            </div>
+            <div class="hub-btn">进入休闲 →</div>
+          </div>
+        </a>
+
+        <a href="tools-hub.html" class="hub-card" style="--c:#b98cff" title="效率 · 小工具" aria-label="进入效率">
+          <div class="hub-inner">
+            <div class="hub-ic">工</div>
+            <div class="hub-text">
+              <h2 class="hub-title">效率</h2>
+              <div class="hub-en">Tools · 专注与站内系统</div>
+              <p class="hub-desc">番茄钟、随机决策器、单位换算、密码生成器、涂鸦板、存档管理，以及成就排行榜。</p>
+              <div class="hub-meta"><span class="hub-tag">7 款</span><span class="hub-tag">纯本地</span><span class="hub-tag">进度存档</span></div>
+            </div>
+            <div class="hub-btn">进入效率 →</div>
+          </div>
+        </a>
+
+        <a href="cards-hub.html" class="hub-card" style="--c:#e8453c" title="卡牌 · 纸牌博弈" aria-label="进入卡牌">
+          <div class="hub-inner">
+            <div class="hub-ic">牌</div>
+            <div class="hub-text">
+              <h2 class="hub-title">卡牌</h2>
+              <div class="hub-en">Card Games · 纸牌博弈</div>
+              <p class="hub-desc">经典纸牌全收录：接龙、蜘蛛纸牌、斗地主、UNO、炸金花、接火车，点选式操作移动端友好，双 AI 对战全部离线可玩。</p>
+              <div class="hub-meta"><span class="hub-tag">6 款</span><span class="hub-tag">AI 对战</span><span class="hub-tag">全部离线</span></div>
+            </div>
+            <div class="hub-btn">进入卡牌 →</div>
+          </div>
+        </a>
+
+        <a href="mahjong-hub.html" class="hub-card" style="--c:#2e7d5b" title="麻将 · 方城之战" aria-label="进入麻将">
+          <div class="hub-inner">
+            <div class="hub-ic">雀</div>
+            <div class="hub-text">
+              <h2 class="hub-title">麻将</h2>
+              <div class="hub-en">Mahjong · 方城之战</div>
+              <p class="hub-desc">四人麻将单机版：万条筒 108 张，三名 AI 陪打，吃碰杠胡、暗杠、听牌提示，七对可胡，自摸点炮计分，积分自动保存。</p>
+              <div class="hub-meta"><span class="hub-tag">1 款</span><span class="hub-tag">AI 三缺一</span><span class="hub-tag">离线可玩</span></div>
+            </div>
+            <div class="hub-btn">进入麻将 →</div>
+          </div>
+        </a>
+
+        <a href="learn-hub.html" class="hub-card" style="--c:#46d39a" title="学习 · 刷题与练习" aria-label="进入学习">
+          <div class="hub-inner">
+            <div class="hub-ic">学</div>
+            <div class="hub-text">
+              <h2 class="hub-title">学习</h2>
+              <div class="hub-en">Learn · 刷题与练习</div>
+              <p class="hub-desc">单词卡与每日挑战升级成完整板块：口算、四级词库刷题、打字练习，纯本地不联网，错词自动进复习本。</p>
+              <div class="hub-meta"><span class="hub-tag">5 款</span><span class="hub-tag">纯本地</span><span class="hub-tag">错题回顾</span></div>
+            </div>
+            <div class="hub-btn">进入学习 →</div>
+          </div>
+        </a>
+
+        <a href="audio-hub.html" class="hub-card" style="--c:#4ad6c1" title="音乐听觉 · 听音与律动" aria-label="进入音乐听觉">
+          <div class="hub-inner">
+            <div class="hub-ic">音</div>
+            <div class="hub-text">
+              <h2 class="hub-title">音乐听觉</h2>
+              <div class="hub-en">Audio · 听音与律动</div>
+              <p class="hub-desc">从白噪音延伸到听音训练、节拍器、八音盒与节奏小游戏，全部 Web Audio 实时合成，无需任何外网资源。</p>
+              <div class="hub-meta"><span class="hub-tag">5 款</span><span class="hub-tag">实时合成</span><span class="hub-tag">无需外网</span></div>
+            </div>
+            <div class="hub-btn">进入音乐 →</div>
+          </div>
+        </a>
+
+        <a href="create-hub.html" class="hub-card" style="--c:#ff6fa5" title="养成创作 · 像素与伙伴" aria-label="进入养成创作">
+          <div class="hub-inner">
+            <div class="hub-ic">创</div>
+            <div class="hub-text">
+              <h2 class="hub-title">养成创作</h2>
+              <div class="hub-en">Create · 像素与伙伴</div>
+              <p class="hub-desc">像素画板自由创作一键导出 PNG，像素小宠物陪你喂食玩耍、阶段进化，多槽位本地存档。</p>
+              <div class="hub-meta"><span class="hub-tag">2 款</span><span class="hub-tag">本地存档</span><span class="hub-tag">Canvas 绘制</span></div>
+            </div>
+            <div class="hub-btn">进入养成 →</div>
+          </div>
+        </a>
+
+      </div>
+    </main>
+
+    <!-- 双栏版：右侧推荐边栏 -->
+    <aside class="sidebar">
+      <div class="side-block">
+        <div class="side-title">今日推荐</div>
+        <ul class="rec-list">
+          <li><a href="snake.html"><span class="rec-ic">蛇</span><span class="rec-txt"><span class="rec-name">腾蛇</span><span class="rec-desc">霓虹贪吃蛇，多皮肤多难度，本地排行榜。</span></span></a></li>
+          <li><a href="biquge.html"><span class="rec-ic">书</span><span class="rec-txt"><span class="rec-name">墨渊阁</span><span class="rec-desc">精品书库畅读，进度、书签与有声朗读。</span></span></a></li>
+          <li><a href="2048.html"><span class="rec-ic">2</span><span class="rec-txt"><span class="rec-name">2048</span><span class="rec-desc">滑动合并数字，冲击更高分。</span></span></a></li>
+          <li><a href="minesweeper.html"><span class="rec-ic">雷</span><span class="rec-txt"><span class="rec-name">扫雷</span><span class="rec-desc">三档难度排雷，首步必安全。</span></span></a></li>
+          <li><a href="tetris.html"><span class="rec-ic">块</span><span class="rec-txt"><span class="rec-name">俄罗斯方块</span><span class="rec-desc">七块旋转消除，逐级加速挑战。</span></span></a></li>
+          <li><a href="lianliankan.html"><span class="rec-ic">连</span><span class="rec-txt"><span class="rec-name">连连看</span><span class="rec-desc">折线连线配对，多档牌面通关。</span></span></a></li>
+        </ul>
+      </div>
+      <div class="side-block">
+        <div class="side-title">推荐专题</div>
+        <div class="topic-grid">
+          <a href="chess-hub.html"><span class="t-ic">棋</span><span class="t-name">棋院</span></a>
+          <a href="puzzle-hub.html"><span class="t-ic">谜</span><span class="t-name">益智</span></a>
+          <a href="casual-hub.html"><span class="t-ic">乐</span><span class="t-name">休闲</span></a>
+          <a href="cards-hub.html"><span class="t-ic">牌</span><span class="t-name">卡牌</span></a>
+          <a href="learn-hub.html"><span class="t-ic">学</span><span class="t-name">学习</span></a>
+          <a href="audio-hub.html"><span class="t-ic">音</span><span class="t-name">音乐</span></a>
+        </div>
+      </div>
+      <div class="side-block">
+        <div class="side-title">新上架 · 静系列 App</div>
+        <ul class="rec-list">
+          <li><a href="apps.html#app-vault"><span class="rec-ic">锁</span><span class="rec-txt"><span class="rec-name">静锁</span><span class="rec-desc">加密分库隐私保险箱，数据不上云。</span></span></a></li>
+          <li><a href="apps.html#app-quiz"><span class="rec-ic">刷</span><span class="rec-txt"><span class="rec-name">静刷</span><span class="rec-desc">离线题库，导入、练习、错题回顾。</span></span></a></li>
+          <li><a href="apps.html#app-med"><span class="rec-ic">药</span><span class="rec-txt"><span class="rec-name">静药</span><span class="rec-desc">吃药提醒与服药记录，纯本地。</span></span></a></li>
+        </ul>
+        <a class="banner-app" style="margin-top:12px" href="apps.html#download">下载安装包 ↓</a>
+      </div>
+    </aside>
+  </div>
+
+  <div class="footer">
+    方寸之间，自有天地
+    <p class="version">妙搭小站 V4.14.0 · 新增「静系列 App」宣传介绍页与官网 APK 下载 · 九大板块一站尽得</p>
+  </div>
+
+<script>
+// ===== 布局切换（记忆到本地）=====
+(function(){
+  var KEY = 'tanlan-layout';
+  var body = document.body;
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.layout-switch button'));
+  var grid = document.getElementById('hubGrid');
+  var searchInput = document.getElementById('searchInput');
+
+  function applyLayout(layout){
+    if(['portal','two-col','grid'].indexOf(layout) === -1) layout = 'two-col';
+    body.setAttribute('data-layout', layout);
+    btns.forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-layout') === layout); });
+    try{ localStorage.setItem(KEY, layout); }catch(e){}
+  }
+
+  btns.forEach(function(btn){
+    btn.addEventListener('click', function(){ applyLayout(btn.getAttribute('data-layout')); });
+  });
+
+  var saved = 'two-col';
+  try{ saved = localStorage.getItem(KEY) || 'two-col'; }catch(e){}
+  applyLayout(saved);
+
+  // ===== 板块搜索过滤（门户版输入框）=====
+  if(searchInput && grid){
+    searchInput.addEventListener('input', function(){
+      var q = searchInput.value.trim().toLowerCase();
+      Array.prototype.forEach.call(grid.querySelectorAll('.hub-card'), function(card){
+        var hit = !q || card.textContent.toLowerCase().indexOf(q) !== -1;
+        card.style.display = hit ? '' : 'none';
+      });
+    });
+  }
+})();
+</script>
+
+<script>
+// 源码保护
+(function(){
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  document.addEventListener('dragstart', function(e){ e.preventDefault(); });
+  document.addEventListener('keydown', function(e){
+    var key = e.key.toLowerCase();
+    if (key === 'f12') { e.preventDefault(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) { e.preventDefault(); return; }
+    if ((e.ctrlKey || e.metaKey) && key === 'u') { e.preventDefault(); return; }
+    if ((e.ctrlKey || e.metaKey) && key === 's') { e.preventDefault(); return; }
+  });
+  document.addEventListener('selectstart', function(e){
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    e.preventDefault();
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+}
+</script>
+
+<script src="sounds.js"></script>
+</body>
+</html>
