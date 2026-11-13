@@ -69,11 +69,13 @@ jobs:
           NOTES="静锁 v1.3.0 / 静刷 v1.3.0 / 静药 v0.2.0 官方签名安装包。
 
           三款均为纯本地 Android 应用：无广告、不联网、不收集数据。
-          基础功能永久免费，高级功能 16 元一次买断、离线激活码解锁。
+          基础功能永久免费；高级功能一次买断：静锁 28 元（首发 18）、静刷 16 元（首发 12）、静药 12 元（首发 9.9），三件打包 39 元。
+          付款后用离线激活码解锁，无需账号、无需联网。
           安装时若提示「未知来源」，允许本次安装即可。
           开发者：董智伟 · QQ 2208144236 · 邮箱 2208144236@qq.com"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG already exists, refreshing assets only."
+            echo "Release $TAG already exists, refreshing notes and assets."
+            gh release edit "$TAG" --notes "$NOTES"
           else
             gh release create "$TAG" --target main \
               --title "静系列 Android 安装包 v1.3.0" --notes "$NOTES"
