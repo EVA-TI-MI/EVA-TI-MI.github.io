@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f0d08">
+<meta name="description" content="静系列三款纯本地 Android 应用：静锁（隐私保险箱）、静刷（离线题库）、静药（吃药提醒）。无广告、不联网、不收集数据，GitHub Release 提供安装包下载。">
+<link rel="manifest" href="manifest.json">
+<title>静系列 · 三款纯本地 Android 应用 | 妙搭小站</title>
+<style>
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --bg:#0f0d08; --paper:#16130c; --txt:#e8dcc8; --sub:#9a8868; --gold:#d4a84b;
+    --green:#46c39a; --blue:#5b9bf5; --mint:#4ad6c1;
+  }
+  html,body{ background:var(--bg); }
+  body{
+    min-height:100vh; font-family:"PingFang SC","Microsoft YaHei",sans-serif; color:var(--txt);
+    display:flex; flex-direction:column; align-items:center; padding:24px 20px 34px;
+    background:
+      radial-gradient(ellipse at 18% 0%, rgba(212,168,75,.12) 0%, transparent 52%),
+      radial-gradient(ellipse at 85% 8%, rgba(70,195,154,.08) 0%, transparent 48%),
+      radial-gradient(ellipse at 80% 100%, rgba(110,168,254,.07) 0%, transparent 50%),
+      var(--bg);
+  }
+  a{ text-decoration:none; }
+
+  /* 顶部工具条：与首页一致，三种布局模式下均可见 */
+  .topbar{ width:100%; max-width:1180px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
+  .brand{ display:flex; flex-direction:column; margin-right:auto; }
+  .brand .b-name{
+    font-family:"STKaiti","KaiTi","楷体",serif; font-size:26px; font-weight:bold; letter-spacing:4px;
+    background:linear-gradient(135deg,#e8c77a 0%,#d4a84b 45%,#f0dc9e 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .brand .b-en{ font-size:10px; letter-spacing:2px; color:var(--sub); text-transform:uppercase; margin-top:2px; }
+  .layout-switch{ display:inline-flex; gap:4px; padding:4px; border-radius:99px;
+    background:rgba(212,168,75,.08); border:1px solid rgba(212,168,75,.25); }
+  .layout-switch button{ appearance:none; border:0; cursor:pointer; padding:8px 16px; border-radius:99px;
+    background:transparent; color:var(--sub); font-size:13px; letter-spacing:1px; transition:.2s; font-family:inherit; }
+  .layout-switch button:hover{ color:var(--txt); }
+  .layout-switch button.active{ background:var(--gold); color:#14110b; font-weight:600; }
+  .top-link{ display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border-radius:99px;
+    color:var(--txt); font-size:13px; letter-spacing:1px; background:rgba(212,168,75,.1);
+    border:1px solid rgba(212,168,75,.4); transition:.25s; }
+  .top-link:hover{ background:var(--gold); color:#14110b; }
+
+  /* 门户版快捷导航 */
+  .portal-nav{ display:none; width:100%; max-width:1180px; }
+  .portal-nav ul{ display:flex; flex-wrap:wrap; gap:6px; list-style:none; border-radius:12px; overflow:hidden;
+    background:rgba(70,195,154,.08); border:1px solid rgba(70,195,154,.28); }
+  .portal-nav a{ display:block; padding:12px 18px; color:var(--txt); font-size:14px; letter-spacing:1px; }
+  .portal-nav a:hover{ background:rgba(70,195,154,.16); }
+  .portal-nav a .nav-ic{ color:var(--gold); margin-right:6px; }
+
+  /* 首屏 */
+  .hero{ width:100%; max-width:1180px; border-radius:20px; padding:38px 40px; position:relative; overflow:hidden;
+    border:1px solid rgba(212,168,75,.25);
+    background:linear-gradient(120deg,rgba(212,168,75,.14) 0%,rgba(70,195,154,.1) 55%,rgba(110,168,254,.08) 100%); }
+  .hero::after{ content:""; position:absolute; top:-40%; right:-12%; width:460px; height:460px; border-radius:50%;
+    background:radial-gradient(circle,rgba(212,168,75,.18) 0%,transparent 70%); pointer-events:none; }
+  .hero h1{ font-family:"STKaiti","KaiTi","楷体",serif; font-size:40px; letter-spacing:6px; color:#e8c77a; position:relative; z-index:1; }
+  .hero .lead{ margin-top:14px; font-size:15px; line-height:2; color:rgba(255,255,255,.76); max-width:760px; position:relative; z-index:1; }
+  .badges{ display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; position:relative; z-index:1; }
+  .badge{ padding:7px 14px; border-radius:99px; font-size:12.5px; letter-spacing:1px; color:var(--green);
+    background:rgba(70,195,154,.1); border:1px solid rgba(70,195,154,.3); }
+
+  /* 主体 */
+  .layout-body{ width:100%; max-width:1180px; margin-top:22px; display:grid; gap:22px; }
+  .main{ min-width:0; }
+  .sidebar{ min-width:0; display:none; }
+  .side-block{ border-radius:16px; border:1px solid rgba(212,168,75,.22); padding:18px;
+    background:linear-gradient(165deg,rgba(212,168,75,.07),#14110b 70%); }
+  .side-block + .side-block{ margin-top:18px; }
+  .side-title{ display:flex; align-items:center; gap:8px; font-size:16px; font-weight:bold; color:var(--gold);
+    letter-spacing:2px; margin-bottom:14px; }
+  .side-title::before{ content:""; width:5px; height:16px; border-radius:3px; background:var(--gold); }
+  .side-list{ list-style:none; display:flex; flex-direction:column; gap:4px; }
+  .side-list a{ display:flex; gap:12px; padding:10px 8px; border-radius:10px; color:var(--txt); transition:.2s; }
+  .side-list a:hover{ background:rgba(212,168,75,.1); }
+  .side-ic{ width:40px; height:40px; flex:0 0 40px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-size:19px; color:var(--gold); background:rgba(212,168,75,.12); }
+  .side-name{ font-size:14px; letter-spacing:1px; }
+  .side-desc{ font-size:11.5px; color:var(--sub); margin-top:3px; line-height:1.6; }
+  .side-p{ font-size:12.5px; line-height:1.9; color:var(--sub); }
+  .side-contact{ margin-top:12px; font-size:13px; line-height:2; color:var(--txt); }
+  .side-contact b{ color:var(--gold); font-weight:600; }
+
+  .sec-title{ font-family:"STKaiti","KaiTi","楷体",serif; font-size:24px; letter-spacing:4px; color:var(--gold); margin:26px 0 14px; }
+  .sec-note{ font-size:13px; line-height:1.9; color:var(--sub); margin-top:-6px; margin-bottom:16px; }
+
+  /* 应用宣传卡 */
+  .app-card{ --c:var(--gold); border-radius:18px; position:relative; overflow:hidden; margin-bottom:20px;
+    border:1px solid color-mix(in srgb,var(--c) 30%,transparent);
+    background:linear-gradient(165deg,color-mix(in srgb,var(--c) 10%,#14110b) 0%,#14110b 75%);
+    display:grid; grid-template-columns:minmax(0,1fr) 200px; gap:24px; padding:28px 30px; }
+  .app-card::before{ content:""; position:absolute; top:-30%; right:-30%; width:320px; height:320px; border-radius:50%;
+    background:radial-gradient(circle,color-mix(in srgb,var(--c) 28%,transparent) 0%,transparent 70%); opacity:.5; pointer-events:none; }
+  .app-main{ position:relative; z-index:1; min-width:0; }
+  .app-head{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .app-ic{ width:58px; height:58px; border-radius:15px; display:flex; align-items:center; justify-content:center;
+    font-size:30px; font-family:"STKaiti","KaiTi","楷体",serif; color:var(--c);
+    background:color-mix(in srgb,var(--c) 15%,transparent); border:2px solid color-mix(in srgb,var(--c) 45%,transparent); }
+  .app-title{ font-family:"STKaiti","KaiTi","楷体",serif; font-size:29px; letter-spacing:5px; color:var(--c); }
+  .app-en{ font-size:11px; letter-spacing:2px; color:var(--sub); margin-top:3px; text-transform:uppercase; }
+  .app-slogan{ margin-top:14px; font-size:14px; letter-spacing:1px; color:var(--txt); }
+  .app-lead{ margin-top:12px; font-size:13.5px; line-height:2; color:rgba(255,255,255,.7); }
+  .feat{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:18px; list-style:none; }
+  .feat li{ font-size:12.5px; line-height:1.6; color:var(--txt); padding:9px 12px; border-radius:8px;
+    background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); }
+  .feat li::before{ content:"✓"; color:var(--c); margin-right:8px; font-weight:bold; }
+  .tier{ margin-top:18px; display:flex; flex-wrap:wrap; gap:10px; }
+  .tier span{ font-size:12px; line-height:1.7; padding:8px 12px; border-radius:8px; color:var(--sub);
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); }
+  .tier .free{ color:var(--green); border-color:rgba(70,195,154,.35); }
+  .tier .pro{ color:var(--gold); border-color:rgba(212,168,75,.35); }
+  .price{ margin-top:14px; font-size:15px; color:var(--gold); letter-spacing:1px; }
+  .price small{ font-size:12px; color:var(--sub); letter-spacing:0; }
+  .app-side{ position:relative; z-index:1; display:flex; flex-direction:column; gap:14px; align-items:center; justify-content:center; }
+  .shot{ width:190px; max-width:100%; display:block; border-radius:14px; border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 14px 34px rgba(0,0,0,.45); }
+  .shot-cap{ font-size:11px; color:var(--sub); text-align:center; }
+
+  /* 下载按钮 */
+  .dl-btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 20px; border-radius:9px;
+    font-size:14px; font-weight:600; letter-spacing:1px; color:#14110b; background:var(--gold);
+    border:1px solid var(--gold); transition:.22s; white-space:nowrap; }
+  .dl-btn:hover{ background:#f0dc9e; border-color:#f0dc9e; transform:translateY(-2px); }
+  .dl-btn.ghost{ background:transparent; color:var(--gold); }
+  .dl-btn.ghost:hover{ background:rgba(212,168,75,.14); }
+  .dl-meta{ font-size:11.5px; color:var(--sub); text-align:center; line-height:1.8; }
+
+  /* 下载总表 */
+  .dl-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+  .dl-card{ border-radius:16px; padding:22px 20px; border:1px solid rgba(212,168,75,.22);
+    background:linear-gradient(165deg,rgba(212,168,75,.07),#14110b 75%); display:flex; flex-direction:column; gap:10px; }
+  .dl-card h3{ font-family:"STKaiti","KaiTi","楷体",serif; font-size:21px; letter-spacing:3px; color:var(--gold); }
+  .dl-card .kv{ font-size:12.5px; color:var(--sub); line-height:1.9; }
+  .dl-card .kv b{ color:var(--txt); font-weight:500; }
+  .dl-card .dl-btn{ margin-top:auto; }
+
+  /* 声明 / FAQ / 联系 */
+  .panel{ border-radius:16px; padding:22px 24px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.035); margin-bottom:14px; }
+  .panel h3{ font-size:16px; color:var(--gold); letter-spacing:1px; margin-bottom:10px; }
+  .panel p{ font-size:13px; line-height:2; color:rgba(255,255,255,.72); }
+  .faq-q{ font-size:13.5px; color:var(--txt); margin:14px 0 4px; font-weight:600; }
+  .faq-a{ font-size:13px; line-height:1.9; color:var(--sub); }
+  .contact{ width:100%; max-width:1180px; margin-top:26px; border-radius:18px; padding:28px 30px;
+    border:1px solid rgba(212,168,75,.3); background:linear-gradient(120deg,rgba(212,168,75,.13),rgba(70,195,154,.07)); }
+  .contact h2{ font-family:"STKaiti","KaiTi","楷体",serif; font-size:24px; letter-spacing:4px; color:#e8c77a; }
+  .contact p{ margin-top:10px; font-size:13.5px; line-height:2; color:rgba(255,255,255,.76); }
+  .contact .row{ display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; }
+  .contact .row a{ padding:10px 18px; border-radius:9px; font-size:13px; color:var(--txt);
+    background:rgba(255,255,255,.05); border:1px solid rgba(212,168,75,.3); }
+  .contact .row a:hover{ border-color:var(--gold); color:var(--gold); }
+  .footer{ margin-top:36px; text-align:center; color:#6a5a3e; font-size:12px; letter-spacing:2px; line-height:2; }
+  .footer a{ color:#8a7555; }
+
+  /* ============ 三种布局模式 ============ */
+  body[data-layout="portal"] .portal-nav{ display:flex; }
+  body[data-layout="portal"] .layout-body{ margin-top:0; }
+  body[data-layout="portal"] .hero{ padding:26px 28px; }
+  body[data-layout="portal"] .hero h1{ font-size:30px; }
+  body[data-layout="portal"] .app-card{ grid-template-columns:minmax(0,1fr) 170px; padding:22px 26px; margin-bottom:14px; }
+  body[data-layout="portal"] .app-title{ font-size:24px; }
+  body[data-layout="portal"] .sidebar{ display:none; }
+
+  body[data-layout="two-col"] .layout-body{ grid-template-columns:1fr 300px; }
+  body[data-layout="two-col"] .sidebar{ display:block; }
+
+  body[data-layout="grid"] .hero{ padding:24px 26px; }
+  body[data-layout="grid"] .hero h1{ font-size:30px; }
+  body[data-layout="grid"] .main{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; align-items:start; }
+  body[data-layout="grid"] .app-card{ display:flex; flex-direction:column; padding:20px 16px; margin-bottom:0; gap:14px; }
+  body[data-layout="grid"] .app-head{ gap:10px; }
+  body[data-layout="grid"] .app-ic{ width:48px; height:48px; font-size:24px; }
+  body[data-layout="grid"] .app-title{ font-size:22px; letter-spacing:3px; }
+  body[data-layout="grid"] .app-lead{ display:none; }
+  body[data-layout="grid"] .feat{ grid-template-columns:1fr; gap:6px; margin-top:14px; }
+  body[data-layout="grid"] .feat li:nth-child(n+5){ display:none; }
+  body[data-layout="grid"] .shot, body[data-layout="grid"] .shot-cap{ display:none; }
+  body[data-layout="grid"] .app-side{ align-items:stretch; }
+  body[data-layout="grid"] .dl-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+  body[data-layout="grid"] .sidebar{ display:none; }
+
+  @media (max-width:960px){
+    body[data-layout="two-col"] .layout-body{ grid-template-columns:1fr; }
+    body[data-layout="two-col"] .sidebar{ display:none; }
+    .app-card{ grid-template-columns:1fr; }
+    .app-side{ flex-direction:row; flex-wrap:wrap; justify-content:flex-start; }
+  }
+  @media (max-width:768px){
+    body{ padding:20px 14px 30px; }
+    .hero{ padding:26px 20px; }
+    .hero h1{ font-size:30px; letter-spacing:3px; }
+    .layout-switch button{ padding:7px 12px; font-size:12px; }
+    body[data-layout="grid"] .main{ grid-template-columns:1fr; }
+    body[data-layout="grid"] .app-lead,
+    body[data-layout="grid"] .app-side .shot,
+    body[data-layout="grid"] .feat li:nth-child(n+5){ display:revert; }
+    body[data-layout="grid"] .app-side .shot{ display:none; }
+    body[data-layout="grid"] .app-side{ flex-direction:column; align-items:stretch; }
+    .dl-grid{ grid-template-columns:1fr; }
+    .feat{ grid-template-columns:1fr; }
+    body[data-layout="portal"] .app-card{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body data-layout="two-col">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="b-name">静系列</span>
+      <span class="b-en">JING APPS · OFFLINE &amp; PRIVATE</span>
+    </div>
+    <nav class="layout-switch" role="tablist" aria-label="布局切换">
+      <button type="button" data-layout="portal" title="门户导航版">门户</button>
+      <button type="button" data-layout="two-col" title="双栏列表版">双栏</button>
+      <button type="button" data-layout="grid" title="紧凑图标墙">网格</button>
+    </nav>
+    <a href="index.html" class="top-link">返回妙搭小站 →</a>
+  </header>
+
+  <nav class="portal-nav">
+    <ul>
+      <li><a href="#app-vault"><span class="nav-ic">锁</span>静锁 · 隐私保险箱</a></li>
+      <li><a href="#app-quiz"><span class="nav-ic">刷</span>静刷 · 离线题库</a></li>
+      <li><a href="#app-med"><span class="nav-ic">药</span>静药 · 吃药提醒</a></li>
+      <li><a href="#download"><span class="nav-ic">↓</span>下载安装包</a></li>
+      <li><a href="#contact"><span class="nav-ic">✉</span>联系作者</a></li>
+    </ul>
+  </nav>
+
+  <section class="hero">
+    <h1>把数据留在自己的手机里</h1>
+    <p class="lead">静锁、静刷、静药，是三款为「不想被广告、账号和云端打扰」的人做的 Android 应用。
+      所有数据只存在本机，不注册、不联网、不上传；基础功能永久免费，高级功能一次买断，没有订阅、没有续费、没有弹窗。</p>
+    <div class="badges">
+      <span class="badge">纯本地存储</span><span class="badge">无需注册登录</span>
+      <span class="badge">无广告 · 无追踪</span><span class="badge">离线可用</span>
+      <span class="badge">一次买断 16 元</span><span class="badge">官网直装 APK</span>
+    </div>
+  </section>
+
+  <div class="layout-body">
+    <main class="main">
+
+      <h2 class="sec-title">三款应用 · 各管一件事</h2>
+      <p class="sec-note">不多做、不打扰、不把你的资料搬去服务器。点标题可直接看功能，下载按钮在最下方汇总。</p>
+
+      <!-- 静锁 -->
+      <article class="app-card" id="app-vault" style="--c:#5b9bf5">
+        <div class="app-main">
+          <div class="app-head">
+            <div class="app-ic">锁</div>
+            <div>
+              <div class="app-title">静锁</div>
+              <div class="app-en">JingSuo · Private Vault</div>
+            </div>
+          </div>
+          <div class="app-slogan">加密分库的本地隐私保险箱 · 给照片、文件和账号一个不上云的抽屉</div>
+          <p class="app-lead">手机里总有些东西不想被相册、文件管理器或云端相册顺手翻到。静锁把这些内容放进独立加密分库，
+            用主密码或生物识别进入，支持伪装模式与入侵抓拍；即使别人拿到手机，也看不到你不想给看的那部分。</p>
+          <ul class="feat">
+            <li>多个加密分库，分类存放照片 / 文件 / 账号</li>
+            <li>主密码 + 生物识别解锁，密码不上传</li>
+            <li>伪装模式：另一套密码进入空白空间</li>
+            <li>入侵抓拍：输错密码时记录 attempt</li>
+            <li>本地备份 / 恢复、回收站，误删可找回</li>
+            <li>导入导出全在本机完成，不走服务器</li>
+          </ul>
+          <div class="tier">
+            <span class="free">永久免费：加密分库、导入、备份恢复、回收站、伪装模式</span>
+            <span class="pro">Pro：SD 卡 / U 盘（OTG）、权限审计、局域网直传、入侵抓拍</span>
+          </div>
+          <div class="price">16 元一次买断 <small>· 离线激活码，买一次永久可用，无订阅</small></div>
+        </div>
+        <div class="app-side">
+          <img class="shot" src="apps/shot-vault.png" alt="静锁 保险库页面" onerror="this.style.display='none'">
+          <div class="shot-cap">v1.3.0 · 约 5 MB</div>
+          <a class="dl-btn" href="https://github.com/EVA-TI-MI/EVA-TI-MI.github.io/releases/download/apps-v1.3.0/jingsuo-v1.3.0.apk" rel="noopener">↓ 下载静锁 APK</a>
+          <div class="dl-meta">Android 7.0 及以上<br>已签名 release 包</div>
+        </div>
+      </article>
+
+      <!-- 静刷 -->
+      <article class="app-card" id="app-quiz" style="--c:#46c39a">
+        <div class="app-main">
+          <div class="app-head">
+            <div class="app-ic">刷</div>
+            <div>
+              <div class="app-title">静刷</div>
+              <div class="app-en">JingShua · Offline Quiz Bank</div>
+            </div>
+          </div>
+          <div class="app-slogan">把自己的题库装进手机 · 导入、练习、错题回顾全离线</div>
+          <p class="app-lead">备考最怕的是「题在别人的服务器上」。静刷让你把 PDF、图片、Anki 牌组、txt / csv 题库导进本地，
+            随时刷题、看解析、按错题复习；没网、没信号、没会员也能做完整套练习，还能导出成标准格式带走。</p>
+          <ul class="feat">
+            <li>本地题库：章节练习、随机抽题、模拟测验</li>
+            <li>错题本与收藏，按掌握度反复练</li>
+            <li>PDF 文字版 / 图片 OCR / Anki .apkg 导入</li>
+            <li>导出标准 txt、csv，题目随时带走</li>
+            <li>题目语音朗读，通勤路上也能听</li>
+            <li>考试倒计时小组件，桌面直接看</li>
+          </ul>
+          <div class="tier">
+            <span class="free">永久免费：本地刷题、错题本、收藏、统计、倒计时</span>
+            <span class="pro">Pro：PDF / OCR / Anki 导入、导出、语音朗读</span>
+          </div>
+          <div class="price">16 元一次买断 <small>· 离线激活码，买一次永久可用，无订阅</small></div>
+        </div>
+        <div class="app-side">
+          <img class="shot" src="apps/shot-quiz.png" alt="静刷 题库首页界面" onerror="this.style.display='none'">
+          <div class="shot-cap">v1.3.0 · 约 43 MB（含离线识别资源）</div>
+          <a class="dl-btn" href="https://github.com/EVA-TI-MI/EVA-TI-MI.github.io/releases/download/apps-v1.3.0/jingshua-v1.3.0.apk" rel="noopener">↓ 下载静刷 APK</a>
+          <div class="dl-meta">Android 7.0 及以上<br>已签名 release 包</div>
+        </div>
+      </article>
+
+      <!-- 静药 -->
+      <article class="app-card" id="app-med" style="--c:#4ad6c1">
+        <div class="app-main">
+          <div class="app-head">
+            <div class="app-ic">药</div>
+            <div>
+              <div class="app-title">静药</div>
+              <div class="app-en">JingYao · Medication Reminder</div>
+            </div>
+          </div>
+          <div class="app-slogan">吃药提醒 · 纯本地 · 无广告 · 给家人也给自己</div>
+          <p class="app-lead">一天几次、饭前饭后、还剩几片——这些事不该靠记忆硬扛。静药按时间排好用药计划，
+            到点提醒、一键记「已服」，自动算依从率、提醒补药；长期吃药的人、替父母管药的人，用起来都不费劲。</p>
+          <ul class="feat">
+            <li>按日 / 按间隔排程，到点提醒不漏服</li>
+            <li>服药记录、依从率统计，一眼看趋势</li>
+            <li>库存与低库存提醒，快吃完先知道</li>
+            <li>家人共享快照，方便照护者查看</li>
+            <li>医生 CSV 报告导出，复诊直接给医生</li>
+            <li>记录仅存本机，健康数据不上传</li>
+          </ul>
+          <div class="tier">
+            <span class="free">永久免费：用药排程、提醒、服药记录、依从率、库存提醒</span>
+            <span class="pro">家庭版：家人共享快照、医生 CSV 报告导出</span>
+          </div>
+          <div class="price">16 元一次买断 <small>· 离线激活码，买一次永久可用，无订阅</small></div>
+        </div>
+        <div class="app-side">
+          <img class="shot" src="apps/shot-med.png" alt="静药 今日用药界面" onerror="this.style.display='none'">
+          <div class="shot-cap">v0.2.0 · 约 5 MB</div>
+          <a class="dl-btn" href="https://github.com/EVA-TI-MI/EVA-TI-MI.github.io/releases/download/apps-v1.3.0/jingyao-v0.2.0.apk" rel="noopener">↓ 下载静药 APK</a>
+          <div class="dl-meta">Android 7.0 及以上<br>已签名 release 包</div>
+        </div>
+      </article>
+
+      <h2 class="sec-title" id="download">下载安装包</h2>
+      <p class="sec-note">安装包由 <a href="https://github.com/EVA-TI-MI/EVA-TI-MI.github.io/releases/tag/apps-v1.3.0" target="_blank" rel="noopener">GitHub Release</a> 托管，点击对应按钮即开始下载（会跳转到 github.com）。安装时系统可能提示「未知来源」，允许本次安装即可；三款应用均为开发者本地签名的 release 包，不申请联网权限做数据上传。</p>
+      <div class="dl-grid">
+        <div class="dl-card">
+          <h3>静锁</h3>
+          <div class="kv">版本 <b>v1.3.0</b> · 大小 <b>约 5 MB</b><br>包名 <b>com.jingshua.vault</b><br>最低系统 <b>Android 7.0</b></div>
+          <a class="dl-btn" href="https://github.com/EVA-TI-MI/EVA-TI-MI.github.io/releases/download/apps-v1.3.0/jingsuo-v1.3.0.apk" rel="noopener">↓ 下载 APK</a>
+        </div>
+        <div class="dl-card">
+          <h3>静刷</h3>
+          <div class="kv">版本 <b>v1.3.0</b> · 大小 <b>约 43 MB</b><br>包名 <b>com.jingshua.quiz</b><br>最低系统 <b>Android 7.0</b></div>
+          <a class="dl-btn" href="https://github.com/EVA-TI-MI/EVA-TI-MI.github.io/releases/download/apps-v1.3.0/jingshua-v1.3.0.apk" rel="noopener">↓ 下载 APK</a>
+        </div>
+        <div class="dl-card">
+          <h3>静药</h3>
+          <div class="kv">版本 <b>v0.2.0</b> · 大小 <b>约 5 MB</b><br>包名 <b>com.jingshua.med</b><br>最低系统 <b>Android 7.0</b></div>
+          <a class="dl-btn" href="https://github.com/EVA-TI-MI/EVA-TI-MI.github.io/releases/download/apps-v1.3.0/jingyao-v0.2.0.apk" rel="noopener">↓ 下载 APK</a>
+        </div>
+      </div>
+
+      <h2 class="sec-title">常见问题</h2>
+      <div class="panel">
+        <div class="faq-q">安装时提示「未知来源 / 有风险」怎么办？</div>
+        <div class="faq-a">这是安卓对浏览器直接下载 APK 的常规提示，不代表应用有问题。在系统弹窗里选择「仍要安装 / 允许本次安装」即可。安装包均为开发者本地签名构建，未经过任何第三方改包。</div>
+        <div class="faq-q">GitHub 下载打不开 / 太慢怎么办？</div>
+        <div class="faq-a">安装包放在 GitHub Release，国内网络偶尔访问不稳定。若点击后长时间无响应，可加作者 QQ 2208144236 或发邮件到 2208144236@qq.com，作者会直接把安装包发给你；也可以在 Release 页面用其他网络环境重试。</div>
+        <div class="faq-q">高级功能怎么解锁？需要联网吗？</div>
+        <div class="faq-a">完全离线。打开应用内「会员中心 / 家庭版会员」，复制本机标识，微信扫码付款 16 元后把标识发给作者（QQ 或邮箱），作者回一串激活码，填入即解锁。不需要账号、不需要联网、不上传任何数据。</div>
+        <div class="faq-q">换手机、卸载重装后还在吗？</div>
+        <div class="faq-a">激活码与本机标识绑定，换设备需要重新发标识，联系作者补发即可，不额外收费。卸载前建议先在应用内做本地备份 / 导出，数据只存本机。</div>
+        <div class="faq-q">为什么坚持不联网？</div>
+        <div class="faq-a">隐私相册、个人题库、服药记录都属于最敏感的个人信息。不上云就不需要账号、不会有推送广告、也不会因为服务关停而丢数据；代价是没有云同步，我们把这个选择权明确交给你。</div>
+      </div>
+
+      <div class="panel">
+        <h3>隐私承诺</h3>
+        <p>三款应用的数据全部保存在应用私有目录，不上传服务器、不接入统计与广告 SDK、不申请与功能无关的敏感权限。基础功能永久免费；高级功能为一次性买断，不存在自动续费、不存在按年订阅。</p>
+      </div>
+
+    </main>
+
+    <aside class="sidebar">
+      <div class="side-block">
+        <div class="side-title">快速下载</div>
+        <ul class="side-list">
+          <li><a href="#app-vault"><span class="side-ic">锁</span><span><span class="side-name">静锁</span><span class="side-desc">隐私保险箱 · 5 MB</span></span></a></li>
+          <li><a href="#app-quiz"><span class="side-ic">刷</span><span><span class="side-name">静刷</span><span class="side-desc">离线题库 · 43 MB</span></span></a></li>
+          <li><a href="#app-med"><span class="side-ic">药</span><span><span class="side-name">静药</span><span class="side-desc">吃药提醒 · 5 MB</span></span></a></li>
+        </ul>
+        <a class="dl-btn ghost" style="margin-top:12px;width:100%" href="#download">查看全部安装包 ↓</a>
+      </div>
+      <div class="side-block">
+        <div class="side-title">为什么叫「静」</div>
+        <p class="side-p">安静地待在手机里，不弹广告、不抢通知栏、不半夜偷偷联网。需要时打开，不需要时它就不存在。</p>
+      </div>
+      <div class="side-block">
+        <div class="side-title">联系作者</div>
+        <div class="side-contact">
+          开发者 <b>董智伟</b><br>
+          QQ <b>2208144236</b><br>
+          邮箱 <b>2208144236@qq.com</b>
+        </div>
+        <p class="side-p" style="margin-top:10px">付款、激活码、功能建议、适配反馈都欢迎直接联系，通常当天回复。</p>
+      </div>
+    </aside>
+  </div>
+
+  <section class="contact" id="contact">
+    <h2>有问题，直接找作者</h2>
+    <p>三款应用由独立开发者董智伟一人维护。下载安装、激活码、功能建议、机型适配问题，都可以直接联系，不用绕客服、不用提交工单。</p>
+    <div class="row">
+      <a href="javascript:void(0)" onclick="copyText('2208144236')">QQ：2208144236（点击复制）</a>
+      <a href="mailto:2208144236@qq.com">邮箱：2208144236@qq.com</a>
+      <a href="#download">前往下载安装包 ↓</a>
+      <a href="index.html">返回妙搭小站首页</a>
+    </div>
+  </section>
+
+  <div class="footer">
+    静系列 · 纯本地 · 无广告 · 不联网
+    <p>© 妙搭小站 · 本站提供官网直装 APK · <a href="index.html">返回首页</a></p>
+  </div>
+
+<script>
+// 布局切换：与首页共用同一个 localStorage 键，三种模式下本页都完整可用
+(function(){
+  var KEY = 'tanlan-layout';
+  var body = document.body;
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.layout-switch button'));
+  function applyLayout(layout){
+    if(['portal','two-col','grid'].indexOf(layout) === -1) layout = 'two-col';
+    body.setAttribute('data-layout', layout);
+    btns.forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-layout') === layout); });
+    try{ localStorage.setItem(KEY, layout); }catch(e){}
+  }
+  btns.forEach(function(btn){
+    btn.addEventListener('click', function(){ applyLayout(btn.getAttribute('data-layout')); });
+  });
+  var saved = 'two-col';
+  try{ saved = localStorage.getItem(KEY) || 'two-col'; }catch(e){}
+  // 支持 ?layout=portal|two-col|grid 直达指定布局，方便分享与预览
+  try{
+    var fromUrl = new URLSearchParams(location.search).get('layout');
+    if(['portal','two-col','grid'].indexOf(fromUrl) !== -1) saved = fromUrl;
+  }catch(e){}
+  applyLayout(saved);
+})();
+function copyText(t){
+  try{
+    var ta = document.createElement('textarea');
+    ta.value = t; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    alert('已复制：' + t);
+  }catch(e){ alert('QQ：' + t); }
+}
+</script>
+</body>
+</html>

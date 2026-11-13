@@ -1,9 +1,10 @@
 // 妙搭小站 - Service Worker
-const CACHE_NAME = 'miaoda-station-v45';
+const CACHE_NAME = 'miaoda-station-v47';
 // 离线语音引擎/模型独立缓存（体积约 45MB，跨 SW 版本长期保留，不随主缓存清理）
 const TTS_CACHE = 'biquge-tts-v1';
 const ASSETS = [
   'index.html',
+  'apps.html',
   'go.html',
   'chess.html',
   'xiangqi.html',
@@ -141,6 +142,12 @@ async function navFallback(req) {
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
+
+  // 0) APK 安装包：已迁至 GitHub Release 托管，本站不再提供 .apk。
+  //    此规则仅作兜底，避免残留 .apk 请求（静刷约 43 MB）写入离线缓存撑爆配额。
+  try {
+    if (new URL(req.url).pathname.toLowerCase().endsWith('.apk')) return;
+  } catch (e) {}
 
   // 1) 页面导航（HTML）：网络优先，保证每次打开都是最新版（根治“首次显示旧版、要再刷新一次”）；
   //    断网时才回退缓存，实现离线可开。
