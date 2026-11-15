@@ -65,6 +65,15 @@
     background:rgba(212,168,75,.1); border:1px solid rgba(212,168,75,.4); transition:.25s;
   }
   .account-entry:hover{ background:var(--gold); color:#14110b; }
+  .app-entry{
+    display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border-radius:99px;
+    color:#14110b; text-decoration:none; font-size:13px; letter-spacing:1px; font-weight:600;
+    background:linear-gradient(135deg,#e8c77a,#d4a84b); border:1px solid var(--gold); transition:.25s;
+  }
+  .app-entry:hover{ background:#f0dc9e; transform:translateY(-2px); }
+  .banner-app{ display:inline-block; margin-top:14px; padding:9px 20px; border-radius:9px;
+    color:#14110b; background:var(--gold); font-size:13px; letter-spacing:1px; font-weight:600; }
+  .banner-app:hover{ background:#f0dc9e; }
 
   /* ===================== 门户版专属区块 ===================== */
   .portal-nav{ display:none; width:100%; max-width:1180px; }
@@ -221,7 +230,7 @@
     </div>
 
     <div class="search-box" id="searchBox">
-      <input type="text" id="searchInput" placeholder="搜索板块 / 游戏…" autocomplete="off">
+      <input type="text" id="searchInput" placeholder="搜索板块 / 游戏 / 应用…" autocomplete="off">
     </div>
 
     <nav class="layout-switch" role="tablist" aria-label="布局切换">
@@ -230,6 +239,7 @@
       <button type="button" data-layout="grid" title="紧凑图标墙">网格</button>
     </nav>
 
+    <a href="apps.html" class="app-entry" title="静系列三款 Android 应用 · 官网下载安装包">静系列 App ↓</a>
     <a href="account.html" class="account-entry" title="注册登录 · 全站排行榜">账号与排行榜</a>
   </header>
 
@@ -245,6 +255,7 @@
       <li><a href="learn-hub.html"><span class="nav-ic">学</span>学习</a></li>
       <li><a href="audio-hub.html"><span class="nav-ic">音</span>音乐听觉</a></li>
       <li><a href="create-hub.html"><span class="nav-ic">创</span>养成创作</a></li>
+      <li><a href="apps.html"><span class="nav-ic">↓</span>静系列 App · 下载</a></li>
     </ul>
   </nav>
 
@@ -252,18 +263,32 @@
   <section class="banner">
     <h2>九大板块 · 游戏与工具，一站尽得</h2>
     <p>弈境棋院 · 益智桌游 · 休闲阅读 · 卡牌博弈 · 方城麻将 · 学习充电 · 音乐听觉 · 养成创作；绝大多数内置离线 AI 对手与本地存档。</p>
+    <a class="banner-app" href="apps.html">新上架：静系列三款 Android 应用 · 官网下载 →</a>
   </section>
 
   <!-- 门户版：标签云 -->
   <div class="tagcloud">
     <span>离线 AI 对弈</span><span>唯一解保证</span><span>街机高分</span><span>纯本地工具</span>
-    <span>纸牌博弈</span><span>方城麻将</span><span>刷题复习</span><span>实时合成音频</span><span>像素创作</span>
+    <span>纸牌博弈</span><span>方城麻将</span><span>刷题复习</span><span>实时合成音频</span><span>像素创作</span><span>静系列 App</span>
   </div>
 
   <!-- 主体：主区 + 侧边栏 -->
   <div class="layout-body">
     <main class="main">
       <div class="hub-grid" id="hubGrid">
+
+        <a href="apps.html" class="hub-card" style="--c:#ffd166" title="静系列 · 三款纯本地 Android 应用，官网直接下载安装包" aria-label="静系列应用介绍与下载">
+          <div class="hub-inner">
+            <div class="hub-ic">静</div>
+            <div class="hub-text">
+              <h2 class="hub-title">静系列</h2>
+              <div class="hub-en">Jing Apps · Android · 官网下载</div>
+              <p class="hub-desc">三款装在手机里的纯本地应用：静锁加密保险箱、静刷离线题库、静药吃药提醒。无广告、不联网、不收集数据，基础功能永久免费，高级功能一次买断；本站可直接下载已签名安装包。</p>
+              <div class="hub-meta"><span class="hub-tag">3 款 App</span><span class="hub-tag">纯本地</span><span class="hub-tag">APK 直下</span></div>
+            </div>
+            <div class="hub-btn">了解并下载 →</div>
+          </div>
+        </a>
 
         <a href="chess-hub.html" class="hub-card" style="--c:#46c39a" title="棋院 · 十一种棋" aria-label="进入棋院">
           <div class="hub-inner">
@@ -409,12 +434,21 @@
           <a href="audio-hub.html"><span class="t-ic">音</span><span class="t-name">音乐</span></a>
         </div>
       </div>
+      <div class="side-block">
+        <div class="side-title">新上架 · 静系列 App</div>
+        <ul class="rec-list">
+          <li><a href="apps.html#app-vault"><span class="rec-ic">锁</span><span class="rec-txt"><span class="rec-name">静锁</span><span class="rec-desc">加密分库隐私保险箱，数据不上云。</span></span></a></li>
+          <li><a href="apps.html#app-quiz"><span class="rec-ic">刷</span><span class="rec-txt"><span class="rec-name">静刷</span><span class="rec-desc">离线题库，导入、练习、错题回顾。</span></span></a></li>
+          <li><a href="apps.html#app-med"><span class="rec-ic">药</span><span class="rec-txt"><span class="rec-name">静药</span><span class="rec-desc">吃药提醒与服药记录，纯本地。</span></span></a></li>
+        </ul>
+        <a class="banner-app" style="margin-top:12px" href="apps.html#download">下载安装包 ↓</a>
+      </div>
     </aside>
   </div>
 
   <div class="footer">
     方寸之间，自有天地
-    <p class="version">妙搭小站 V4.13.0 · 联机可选「局域网 / 远程」：异地朋友输入房间码即可公网对局 · 九大板块一站尽得</p>
+    <p class="version">妙搭小站 V4.14.0 · 新增「静系列 App」宣传介绍页与官网 APK 下载 · 九大板块一站尽得</p>
   </div>
 
 <script>
