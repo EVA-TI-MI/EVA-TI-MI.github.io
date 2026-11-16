@@ -1,0 +1,289 @@
+/* 妙搭小站 · 门户动效层（仅增强视觉，不改变既有布局） */
+:root {
+  --fx-gold: #e8c77a;
+  --fx-ease: cubic-bezier(.22, 1, .36, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 24px;
+}
+
+body { isolation: isolate; }
+
+/* 装饰层与内容层分离，不拦截任何点击 */
+.fx-backdrop,
+.fx-ambient {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.fx-backdrop {
+  background:
+    linear-gradient(180deg, rgba(15, 13, 8, .18), rgba(15, 13, 8, .76) 72%, #0f0d08 100%),
+    url("assets/ink-gold-banner.webp") center top / cover no-repeat;
+  opacity: .26;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, .8) 52%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, .8) 52%, transparent 100%);
+}
+
+.fx-ready > :not(.fx-backdrop):not(.fx-ambient):not(.fx-progress) {
+  position: relative;
+  z-index: 1;
+}
+
+.fx-progress {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  pointer-events: none;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: linear-gradient(90deg, #8b6a2d, #f0dc9e 62%, #46c39a);
+  box-shadow: 0 0 12px rgba(232, 199, 122, .5);
+  will-change: transform;
+}
+
+/* 首屏入场：动画结束后交还 transform 控制权，不影响卡片悬浮 */
+@keyframes fx-enter {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fx-scene-in {
+  from { opacity: 0; transform: translateY(16px) scale(.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fx-drift {
+  from { transform: translate3d(-2%, 0, 0) scale(1); }
+  to { transform: translate3d(2%, 2%, 0) scale(1.035); }
+}
+
+@keyframes fx-button-sheen {
+  0%, 72% { transform: translateX(-180%) skewX(-20deg); opacity: 0; }
+  78% { opacity: .55; }
+  92%, 100% { transform: translateX(240%) skewX(-20deg); opacity: 0; }
+}
+
+@keyframes fx-target-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 199, 122, 0); }
+  35% { box-shadow: 0 0 0 5px rgba(232, 199, 122, .22), 0 18px 50px rgba(212, 168, 75, .14); }
+}
+
+.fx-js .topbar,
+.fx-js .top,
+.fx-js .head {
+  animation: fx-enter .68s var(--fx-ease) backwards;
+}
+
+.fx-js .head { animation-delay: .07s; }
+
+.fx-js .banner,
+.fx-js .hero {
+  animation: fx-scene-in .82s .08s var(--fx-ease) backwards;
+}
+
+/* 同一幅水墨金光贯穿首页横幅与静系列首屏 */
+.banner,
+.hero {
+  background-image:
+    linear-gradient(102deg, rgba(15, 13, 8, .96) 0%, rgba(15, 13, 8, .78) 52%, rgba(15, 13, 8, .24) 100%),
+    url("assets/ink-gold-banner.webp");
+  background-size: cover;
+  background-position: center;
+  box-shadow: inset 0 1px 0 rgba(240, 220, 158, .08), 0 20px 60px rgba(0, 0, 0, .16);
+}
+
+.fx-js .hero::before {
+  content: "";
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  left: -140px;
+  top: -210px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(212, 168, 75, .12), transparent 68%);
+  animation: fx-drift 10s ease-in-out infinite alternate;
+}
+
+/* JS 仅在下文元素进入视口时添加 .fx-visible；无 JS 时内容始终可见 */
+.fx-js .fx-reveal { opacity: 0; }
+.fx-js .fx-reveal.fx-visible { opacity: 1; }
+
+/* 鼠标位置的柔光，不在触屏设备启用 */
+.hub-card::after,
+.app-card::after,
+.dl-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(380px circle at var(--fx-x, 50%) var(--fx-y, 50%), rgba(255, 244, 211, .095), transparent 64%);
+  transition: opacity .35s ease;
+}
+
+.dl-card { position: relative; overflow: hidden; }
+.dl-card > * { position: relative; z-index: 2; }
+
+@media (hover: hover) and (pointer: fine) {
+  .hub-card:hover::after,
+  .app-card:hover::after,
+  .dl-card:hover::after { opacity: 1; }
+
+  .dl-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(212, 168, 75, .48);
+    box-shadow: 0 16px 38px rgba(0, 0, 0, .22);
+  }
+}
+
+.dl-card {
+  transition: transform .3s var(--fx-ease), border-color .3s ease, box-shadow .3s ease;
+}
+
+.hub-ic,
+.ci,
+.app-ic {
+  transition: transform .38s var(--fx-ease), box-shadow .38s ease;
+}
+
+.hub-card:hover .hub-ic,
+.app-card:hover .ci,
+.app-card:hover .app-ic {
+  transform: translateY(-3px) rotate(-3deg) scale(1.045);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--c, #d4a84b) 18%, transparent);
+}
+
+.hub-tag,
+.badge,
+.tagcloud span {
+  display: inline-block;
+  transition: transform .25s var(--fx-ease), border-color .25s ease, background-color .25s ease;
+}
+
+.hub-tag:hover,
+.badge:hover,
+.tagcloud span:hover {
+  transform: translateY(-2px);
+  border-color: rgba(232, 199, 122, .52);
+  background-color: rgba(212, 168, 75, .1);
+}
+
+/* 下载入口的流光每 7 秒出现一次，不持续闪烁 */
+.app-entry,
+.dl-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.app-entry::after,
+.dl-btn::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  bottom: -40%;
+  left: 0;
+  width: 34%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .48), transparent);
+  opacity: 0;
+  animation: fx-button-sheen 7s 1.8s ease-in-out infinite;
+}
+
+.app-card:target {
+  animation: fx-target-pulse 1.6s .15s ease-out 2;
+}
+
+/* 键盘导航保持清晰可见 */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--fx-gold);
+  outline-offset: 4px;
+}
+
+@media (max-width: 768px) {
+  .fx-backdrop { opacity: .19; }
+  .banner,
+  .hero { background-position: 62% center; }
+  .app-entry::after,
+  .dl-btn::after { animation: none; }
+}
+
+/* 窄屏布局修正：避免网格最小内容宽度撑破视口（仅门户页加载） */
+@media (max-width: 960px) {
+  body[data-layout="two-col"] .layout-body { grid-template-columns: minmax(0, 1fr); }
+  .cards { min-width: 0; }
+}
+
+@media (max-width: 520px) {
+  .top { flex-wrap: wrap; gap: 10px; }
+  .head { max-width: 100%; }
+  .head p { letter-spacing: 2px; line-height: 1.8; }
+
+  body[data-layout="two-col"] .cards { grid-template-columns: minmax(0, 1fr); }
+  body[data-layout="grid"] .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  /* 首页门户卡片：图标 / 文字两列，按钮独占下一行 */
+  body[data-layout="portal"] .hub-card { padding: 20px 18px; }
+  body[data-layout="portal"] .hub-inner {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 12px 14px;
+    width: 100%;
+  }
+  body[data-layout="portal"] .hub-text { min-width: 0; }
+  body[data-layout="portal"] .hub-title { font-size: 20px; letter-spacing: 2px; }
+  body[data-layout="portal"] .hub-en { letter-spacing: 1px; line-height: 1.6; }
+  body[data-layout="portal"] .hub-btn {
+    grid-column: 2;
+    justify-self: start;
+    margin-top: 2px;
+  }
+
+  /* 九个板块门户卡片采用同一结构 */
+  body[data-layout="portal"] .app-card { padding: 18px; }
+  body[data-layout="portal"] .cc {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 10px 14px;
+    width: 100%;
+    padding: 0;
+  }
+  body[data-layout="portal"] .card-text { min-width: 0; }
+  body[data-layout="portal"] .cb {
+    grid-column: 2;
+    justify-self: start;
+    margin-top: 2px;
+  }
+}
+
+/* 尊重系统减少动态效果设置：保留静态水墨，不显示粒子、不做入场动画 */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .fx-ambient { display: none !important; }
+  .fx-js .fx-reveal { opacity: 1 !important; }
+}
+
+@media print {
+  .fx-backdrop,
+  .fx-ambient,
+  .fx-progress { display: none !important; }
+}

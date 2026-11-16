@@ -90,6 +90,7 @@
   @media (max-width:960px){ body[data-layout="two-col"] .layout-body{grid-template-columns:1fr;} }
   @media (max-width:520px){ body[data-layout="grid"] .cards{grid-template-columns:repeat(3,1fr);gap:10px;} }
 </style>
+<link rel="stylesheet" href="fx.css">
 </head>
 <body data-layout="two-col">
   <div class="top">
@@ -291,5 +292,6 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   applyLayout(saved);
 })();
 </script>
+<script src="fx.js"></script>
 </body>
 </html>
