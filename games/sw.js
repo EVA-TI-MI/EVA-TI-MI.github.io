@@ -1,5 +1,5 @@
 // 妙搭小站 - Service Worker
-const CACHE_NAME = 'miaoda-station-v49';
+const CACHE_NAME = 'miaoda-station-v50';
 // 离线语音引擎/模型独立缓存（体积约 45MB，跨 SW 版本长期保留，不随主缓存清理）
 const TTS_CACHE = 'biquge-tts-v1';
 const ASSETS = [
@@ -132,17 +132,17 @@ function isTtsResource(url) {
 function isNetBypass(url) {
   try { return new URL(url).searchParams.get('net') === '1'; } catch (e) { return false; }
 }
-// 离线时导航请求的页面兜底
+// 离线时导航请求的页面兜底：书库只回退到自身，其余页面统一回首页
 async function navFallback(req) {
   const hit = await caches.match(req);
   if (hit) return hit;
   try {
-    const p = new URL(req.url).pathname;
-    if (p.endsWith('biquge.html') || p.endsWith('/games/') || p.endsWith('/games')) {
-      const b = await caches.match('biquge.html'); if (b) return b;
+    if (new URL(req.url).pathname.endsWith('biquge.html')) {
+      const b = await caches.match('biquge.html');
+      if (b) return b;
     }
   } catch (e) {}
-  return caches.match('index.html');
+  return (await caches.match('index.html')) || (await caches.match('./'));
 }
 
 self.addEventListener('fetch', (e) => {
